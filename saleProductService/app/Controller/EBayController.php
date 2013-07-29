@@ -4,8 +4,7 @@ App :: import('Vendor', 'Ebay');
 class EBayController extends AppController   
 {   
 	public $helpers = array('Html', 'Form');//,'Ajax','Javascript
-	var $uses = array('User');
-	
+	var $uses = array('Amazonaccount','Warning','Log','OrderService');
 	/**
 	 * 固定价格产品操作：
 	 * AddFixedPriceItem 用于添加固定价格的产品到ebay，类似于淘宝一口价
@@ -17,50 +16,124 @@ class EBayController extends AppController
 		
 	}
 	
+	function getCategoryFeathers( $accountId , $categoryId  ){
+		$reqMap = $this->requestMap() ;
+		$jsoncallback = $reqMap['jsonpcallback'] ;
+		
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		
+		$ebayParams = array(
+				'appMode'=>$account['EBAY_APP_MODE'],
+				'siteId'=>$account['EBAY_SITE_ID'],
+				'devId'=>$account['EBAY_DEV_ID'],
+				'appId'=>$account['EBAY_APP_ID'],
+				'certId'=>$account['EBAY_CERT_ID'],
+				'token'=>$account['EBAY_TOKEN']
+		) ;
+		
+		$ebay = new Ebay( $ebayParams ) ;
+		$result = $ebay->getCategoryFeathers( $categoryId ) ;//"117031"
+		
+		$this->response->type("json") ;
+		$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
+		
+		return $this->response ;
+	}
+	
 	/**
 	 * 可变价格产品
 	 * AddItem 用于添加可变价格产品，类似于淘宝上的拍卖价
 	 * ReviseItem 更新可变价格产品的属性，如title，price，库存等
 	 * EndItem 
 	 */
-	function doItem(){
-		$USA_SITE_ID = 1 ;
+	function doItem($accountId,$listingType){
+		
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
 		
 		$ebayParams = array(
-				'appMode'=>1,
-				'siteId'=>$USA_SITE_ID,
-				'devId'=>'5e786b61-b476-44f6-be61-06b4320f1b08',
-				'appId'=>'kuyunf80d-710a-4334-9b33-b5ecc9f18ea',
-				'certId'=>'1409fdee-376b-402a-8a9a-dfd74cb0e0ce',
-				'token'=>'AgAAAA**AQAAAA**aAAAAA**H7jPUQ**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6wFk4GhCpWLoAqdj6x9nY+seQ**bJEBAA**AAMAAA**BPt9l7YvR5SqozBme/6oD66cSG4G/8mCFi0pkIS/Yy7MrMvjImLA28t5cIpB403pQDVc7vNJ7T6sdUpky/AJURw86ooTqKIevcBe7pvlqQl6GbWdfC+fwMGreCJ2YN81fqZefXr+exlJAnlITbyJspi8rWMCM3WYF1x+VVSm9VaIfcXG3Z/qNBC7cSjckeZm9KDsmsqjIZ/8PXNeYBEwfCjLkzvXYgMMlvHtrWJsuPCaNmIVbi+HUBuxq+BIdCukYX/20aHRpdWg9r82m9GeEsZ0V6wiJa6P6U7nccFRbj1dzrVljYrkyK1kIv//BCOKpw3Hd9/YF1TSomlGRt4WbVxYPVErTnzuN3nIpmPxX4kkgFZIMhi2orXvHGVEsfZBpN8uejMrspbPuIzpOr4hUkZmvmiJsvCQNKFaiaEJgk6SffO5jmltqp/x+3KRXxrOnPiBZCKdHYyn1fgtsIXPOqSx6SfWp5q8M0otD20YvQsw01WnFG4kSR61cWy2fUSL2B6RRXONKZeyBXi+ILljpTiBJntTzPfp1VspB31JewvY3lE6x+ZDAV4PEGTKzMoCkkGVy9b/CjNNHle/VcWx87D75vMylJCucB12HDD6Ks1/L/TKe/Oktciq+590Vpx/M5TslDl67MtWGiDnLw/+2XRyH1dDWOSh/+2C1ZMLSIqs3crAu0+tlzjf/EDP507LtRy8cWOiLCyyck6nV5pBv24PpXbscyGAkVU5W8oEtl4OIVhtQmcimTv2v3eW2vco'
+				'appMode'=>$account['EBAY_APP_MODE'],
+				'siteId'=>$account['EBAY_SITE_ID'],
+				'devId'=>$account['EBAY_DEV_ID'],
+				'appId'=>$account['EBAY_APP_ID'],
+				'certId'=>$account['EBAY_CERT_ID'],
+				'token'=>$account['EBAY_TOKEN']
 		) ;
 		
+		$reqMap = $this->requestMap() ;
+		$xml = (string)$reqMap['xml'] ;
+		
 		$ebay = new Ebay( $ebayParams ) ;
-		$ebay->addItem( array
-				(
-					'Title' => 'iPod',
-					'Quantity' => '1',
-					'Currency' => 'USD',
-					'Country' => 'AT',
-					'StartPrice' => '5.00',
-					'ListingDuration' => 'Days_7',
-					'Location' => 'Cologne',
-					'PaymentMethods' => 'PayPal',
-					'ListingType' => 'Chinese',
-					'Description' => 'Enter Description Here',
-					'CategoryID' => '31448',
-				) ) ;
+		$res = $ebay->doItem($xml,$listingType) ;
+		
+		$res = $this->parseResopnse($res) ;
+		
+		
+		$this->response->type("text") ;
+		$this->response->body( json_encode($res) )   ;
+		//$this->response->body( $isSuccess?"true":"false" )   ;
+		
+		return $this->response ;
 	}
 	
-	/**
-	 * 批量产品变价
-	 * EndItems
-	 */
-	function doItems(){
-	
-	}
-	
-	function addItemProduct(){
-		$this->login() ;
+	/*
+	 * <?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <soapenv:Body>
+  <AddFixedPriceItemResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+   <Timestamp>2013-07-29T13:08:25.990Z</Timestamp>
+   <Ack>Success</Ack>
+   <Version>833</Version>
+   <Build>E833_UNI_API5_16246498_R1</Build>
+   <ItemID>110120484396</ItemID>
+   <StartTime>2013-07-29T13:08:25.583Z</StartTime>
+   <EndTime>2013-08-01T13:08:25.583Z</EndTime>
+   <Fees>
+    <Fee>
+  </AddFixedPriceItemResponse>
+ </soapenv:Body>
+</soapenv:Envelope>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <soapenv:Body>
+  <AddFixedPriceItemResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+   <Timestamp>2013-07-29T13:13:46.888Z</Timestamp>
+   <Ack>Failure</Ack>
+   <Errors>
+    <ShortMessage>Listing violates the Duplicate Listing policy.</ShortMessage>
+    <LongMessage>This Listing is a duplicate of your item: 66666666666622222222222 (110120484396). Under the Duplicate Listing policy, sellers can茂驴陆t have multiple Fixed Price listings, multiple Auction-style (with the Buy It Now option) listings, or in both the Fixed Price and Auction-style (with the Buy It Now option) listings for identical items at the same time. We recommend you create a multiple quantity Fixed Price listing to sell identical items.</LongMessage>
+    <ErrorCode>21919067</ErrorCode>
+    <SeverityCode>Error</SeverityCode>
+    <ErrorParameters ParamID="0">
+     <Value>66666666666622222222222</Value>
+    </ErrorParameters>
+    <ErrorParameters ParamID="1">
+     <Value>110120484396</Value>
+    </ErrorParameters>
+    <ErrorClassification>RequestError</ErrorClassification>
+   </Errors>
+   <Version>833</Version>
+   <Build>E833_UNI_API5_16226159_R1</Build>
+  </AddFixedPriceItemResponse>
+ </soapenv:Body>
+</soapenv:Envelope>
+*/
+	function parseResopnse($res){
+		//echo 
+		$pos = strrpos($res, "<Ack>Success</Ack>");
+		if ($pos === false) { // note: three equal signs
+			$res = str_replace("soapenv:Envelope", "soapenvEnvelope", $res) ;
+			$res = str_replace("soapenv:Body", "soapenvBody", $res) ;
+			
+			$xml = new  SimpleXMLElement($res);
+			
+			$error = (string)$xml->soapenvBody ->AddFixedPriceItemResponse ->Errors->LongMessage ;
+			
+			
+		    return array( "isSuccess"=>"false" , "message"=> $error ) ;
+		}
+		return array( "isSuccess"=>"true" , "message"=> "" ) ;
 	}
 } 

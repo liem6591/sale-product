@@ -4,6 +4,7 @@ require_once 'ebay/EbatNs/EbatNs_ServiceProxy.php';
 require_once 'ebay/EbatNs/EbatNs_Logger.php';
 require_once 'ebay/EbatNs/VerifyAddItemRequestType.php';
 require_once 'ebay/EbatNs/AddItemRequestType.php';
+require_once 'ebay/EbatNs/AddFixedPriceItemRequestType.php';
 require_once 'ebay/EbatNs/ItemType.php';
 require_once 'ebay/EbatNs/ShippingDetailsType.php';
 require_once 'ebay/EbatNs/ReturnPolicyDetailsType.php';
@@ -95,5 +96,27 @@ class Ebay {
 		$res = $this->cs->AddItemBody($req,$ItemXml);
 		
 		return $res ;
+	}
+	
+	public function addFixedPriceItem( $ItemXml ){
+
+		$req = new AddFixedPriceItemRequestType();
+		$req->Item =  new ItemType();
+		$res = $this->cs->AddFixedPriceItemBody($req,$ItemXml);
+	
+		return $res ;
+	}
+	
+	/**
+	 * 添加产品到Ebay
+	 *
+	 * @param unknown_type $product_data
+	 */
+	public function doItem( $ItemXml , $listingType ){
+		if( $listingType == 'Chinese' ){
+			return $this->addItem($ItemXml) ;
+		}else{
+			return $this->addFixedPriceItem($ItemXml) ;
+		}
 	}
 }

@@ -117,6 +117,11 @@ class EbatNs_ServiceProxy extends EbatNs_Client
 		$request->setVersion(EBAY_WSDL_VERSION);
 		return $this->call('AddFixedPriceItem', $request);
 	}
+	function AddFixedPriceItemBody($request,$body)
+	{
+		$request->setVersion(EBAY_WSDL_VERSION);
+		return $this->callBody('AddFixedPriceItem', $request,$body);
+	}
 	/**
 	 * @return AddItemResponseType
 	 * @param AddItemRequestType $request 

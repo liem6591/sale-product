@@ -38,7 +38,7 @@ App::uses('Security', 'Utility');
  */
 class MysecurityComponent extends Component {
 	public function ignore( $url ){
-		
+		return true ;
 		if( $url == "users/login" 
 			|| $url == "users/loginPhone" 
 			|| $this->startsWith($url,"eBay") 

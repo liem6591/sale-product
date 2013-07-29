@@ -460,9 +460,9 @@ class EbatNs_Client
 		$header = $this->_makeSessionHeader();
 		
 		$message = $this->buildMessage( $body, $header );
-		echo '--------------------------<br>' ;
-		echo $message ;
-		echo '<br>----------------------------<br>' ;
+		//echo '--------------------------<br>' ;
+		//echo $message ;
+		//echo '<br>----------------------------<br>' ;
 		$ep = $this->_session->getApiUrl();
 		$ep .= '?callname=' . $method;
 		$ep .= '&siteid=' . $this->_session->getSiteId();
