@@ -39,6 +39,7 @@ class AppController extends Controller {
 	public $browser = null ;
 	
 	function beforeFilter(){
+		ob_start() ;
 		$this->browser = $this->websitez_detect_mobile_device() ;
 		$status = $this->browser['status'] ;
 		$url = $this->request->url ;

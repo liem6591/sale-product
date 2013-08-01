@@ -13,7 +13,6 @@ class EBayController extends AppController
 	 * EndFixedPriceItem  清除产品
 	 */
 	function doFixedPriceItem(){
-		
 	}
 	
 	function getCategoryFeathers( $accountId , $categoryId  ){
@@ -34,7 +33,8 @@ class EBayController extends AppController
 		
 		$ebay = new Ebay( $ebayParams ) ;
 		$result = $ebay->getCategoryFeathers( $categoryId ) ;//"117031"
-		
+
+		ob_clean() ;
 		$this->response->type("json") ;
 		$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
 		
@@ -69,13 +69,40 @@ class EBayController extends AppController
 		
 		$res = $this->parseResopnse($res) ;
 		
-		
+		ob_clean() ;
 		$this->response->type("text") ;
 		$this->response->body( json_encode($res) )   ;
 		//$this->response->body( $isSuccess?"true":"false" )   ;
 		
 		return $this->response ;
 	}
+	
+	public function getCategorySpecials($accountId , $categoryId){
+		$reqMap = $this->requestMap() ;
+		$jsoncallback = $reqMap['jsonpcallback'] ;
+		
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		
+		$ebayParams = array(
+				'appMode'=>$account['EBAY_APP_MODE'],
+				'siteId'=>$account['EBAY_SITE_ID'],
+				'devId'=>$account['EBAY_DEV_ID'],
+				'appId'=>$account['EBAY_APP_ID'],
+				'certId'=>$account['EBAY_CERT_ID'],
+				'token'=>$account['EBAY_TOKEN']
+		) ;
+
+		ob_clean() ;
+		$ebay = new Ebay( $ebayParams ) ;
+		$result = $ebay->getCategorySpecials( $categoryId ) ;//"117031"
+		
+		$this->response->type("json") ;
+		$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
+		
+		return $this->response ;
+	}
+	
 	
 	/*
 	 * <?xml version="1.0" encoding="UTF-8"?>

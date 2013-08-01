@@ -11,6 +11,8 @@ require_once 'ebay/EbatNs/ReturnPolicyDetailsType.php';
 require_once 'ebay/EbatNs/RefundDetailsType.php';
 require_once 'ebay/EbatNs/ReturnsAcceptedDetailsType.php';
 
+
+require_once 'ebay/EbatNs/GetCategorySpecificsRequestType.php';
 require_once 'ebay/EbatNs/GetCategoryFeaturesRequestType.php';
 require_once 'ebay/EbatNs/DetailLevelCodeType.php';
 require_once 'ebay/EbatNs/AbstractRequestType.php';
@@ -105,6 +107,35 @@ class Ebay {
 		$res = $this->cs->AddFixedPriceItemBody($req,$ItemXml);
 	
 		return $res ;
+	}
+	
+	/**
+	 * <GeteBayDetailsRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <!-- Call-specific Input Fields -->
+  <DetailName> DetailNameCodeType </DetailName>
+  <!-- ... more DetailName values allowed here ... -->
+  <!-- Standard Input Fields -->
+  <ErrorLanguage> string </ErrorLanguage>
+  <MessageID> string </MessageID>
+  <Version> string </Version>
+  <WarningLevel> WarningLevelCodeType </WarningLevel>
+</GeteBayDetailsRequest>
+	 */
+	public function getCategorySpecials($categoryId){
+		$req = new GetCategorySpecificsRequestType();
+		
+		$req->setCategoryID($categoryId ) ;
+		
+		$res = $this->cs->GetCategorySpecifics($req);
+		
+		$res = str_replace("soapenv:Envelope", "soapenvEnvelope", $res) ;
+		$res = str_replace("soapenv:Body", "soapenvBody", $res) ;
+	
+		$xml = new  SimpleXMLElement($res);
+		
+		$recommendations = $xml->soapenvBody ->GetCategorySpecificsResponse ->Recommendations   ;
+		
+		return $recommendations ;
 	}
 	
 	/**
