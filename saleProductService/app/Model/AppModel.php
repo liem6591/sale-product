@@ -257,13 +257,18 @@ class AppModel extends Model {
 		
 		public function exeSql($sql , $query){
 			$sql = $this->getDbSql($sql) ;
+			
 			$sql = $this->getSql($sql,$query) ;
+			
+			//echo $sql ;
+			//return $sql ;
 		//	echo $sql ;
 			return $this->query($sql) ;
 		}
 		
 		public function getExeSql($sql , $query){
 			$sql = $this->getDbSql($sql) ;
+			
 			$sql = $this->getSql($sql,$query) ;
 			//echo $sql ;
 			return $sql ;
@@ -348,16 +353,16 @@ class AppModel extends Model {
 	    								$kValue = $query[$key] ;
 	    								//格式化$kValue,防止sql特殊字符
 	    								$kValue = str_replace("'","\'",$kValue);
-	    								if( $this->is_utf8($kValue) ){
+	    								//if( $this->is_utf8($kValue) ){
 	    									//
-	    								}else{
-	    									$kValue = utf8_encode($kValue) ;
-	    								}
+	    								//}else{
+	    								//	$kValue = utf8_encode($kValue) ;
+	    								//}
 	    								if(empty($kValue) && $kValue != '0'){
 	    									$kValue = $defaultValue ;
 	    								}
 
-	    								$clause .=  $kValue ;
+	    								$clause .=mysql_escape_string($kValue) ;
 	    								$isTrue = true ;
 	    							}else{
 	    								$isTrue = false ;
@@ -395,7 +400,10 @@ class AppModel extends Model {
 			}
 		}
 		
-		function is_utf8($string) {  
+		function is_utf8($string=null) {  
+			
+			if(empty($string)) return true ;
+			if(!is_string($string))return true;
 		    // From http://w3.org/International/questions/qa-forms-utf-8.html      
 		    return preg_match('%^(?:  
 		        [\x09\x0A\x0D\x20-\x7E]              # ASCII  
@@ -407,5 +415,16 @@ class AppModel extends Model {
 		        | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15  
 		        |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16  
 		    )*$%xs', $string);  
+		}
+		
+		function create_guid() {
+			$charid = strtoupper(md5(uniqid(mt_rand(), true)));
+			$hyphen = chr(45);// "-"
+			$uuid = substr($charid, 0, 8).$hyphen
+			.substr($charid, 8, 4).$hyphen
+			.substr($charid,12, 4).$hyphen
+			.substr($charid,16, 4).$hyphen
+			.substr($charid,20,12);
+			return $uuid;
 		}
 }

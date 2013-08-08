@@ -18,6 +18,24 @@ require_once 'ebay/EbatNs/DetailLevelCodeType.php';
 require_once 'ebay/EbatNs/AbstractRequestType.php';
 require_once 'ebay/EbatNs/GetCategoryFeaturesResponseType.php';
 
+//获取订单
+require_once 'ebay/EbatNs/GetOrdersRequestType.php';
+require_once 'ebay/EbatNs/GetOrdersResponseType.php';
+
+//回复
+require_once 'ebay/EbatNs/RespondToFeedbackRequestType.php';
+require_once 'ebay/EbatNs/RespondToFeedbackResponseType.php';
+
+require_once 'ebay/EbatNs/GetFeedbackRequestType.php';
+require_once 'ebay/EbatNs/GetFeedbackResponseType.php';
+
+require_once 'ebay/EbatNs/GetMyMessagesRequestType.php';
+require_once 'ebay/EbatNs/GetMyMessagesResponseType.php';
+
+require_once 'ebay/EbatNs/ReviseMyMessagesRequestType.php';
+require_once 'ebay/EbatNs/ReviseMyMessagesResponseType.php';
+
+
 class Ebay {
 	var $session ;
 	var $cs ;
@@ -70,8 +88,6 @@ class Ebay {
 		$category = $xml->soapenvBody ->GetCategoryFeaturesResponse ->Category ;
 		
 		$conditionEnabled = (string)$category->ConditionEnabled  ;
-		
-		
 		
 		if( $conditionEnabled == "Required" ){
 			$conditions = $category->ConditionValues->Condition   ;
@@ -149,5 +165,105 @@ class Ebay {
 		}else{
 			return $this->addFixedPriceItem($ItemXml) ;
 		}
+	}
+
+	public function getOrders(){
+		$req = new GetOrdersRequestType();
+		$req->addDetailLevel( DetailLevelCodeType::CodeType_ReturnAll );
+		$req->CreateTimeFrom  = gmdate('Y-m-d H:i:s', time() - 60 * 60 * 24 * 120);
+		$req->CreateTimeTo   = gmdate('Y-m-d H:i:s');
+		
+		$pag = new PaginationType();
+		$pag->setEntriesPerPage(200);
+		$pag->setPageNumber(1);
+		$req->setPagination($pag);
+		
+		$res = $this->cs->GetOrders($req);
+		
+		return $res;
+	}
+	
+	/**
+	 * 反馈
+	 */
+	public function getFeedback(){
+		$req = new GetFeedbackRequestType();
+		$req->setDetailLevel( DetailLevelCodeType::CodeType_ReturnAll  );
+		
+		$pag = new PaginationType();
+		$pag->setEntriesPerPage(200);
+		$pag->setPageNumber(1);
+		$req->setPagination($pag);
+		
+		$res = $this->cs->GetFeedback($req);
+		return $res ;
+	}
+	
+	
+	public function getMyMessagesHeader(){
+		$req = new GetMyMessagesRequestType();
+		$req->setDetailLevel( "ReturnHeaders" );
+		//$req->setStartTime( gmdate('Y-m-d H:i:s', time() - 60 * 60 * 24 * 120) ) ;
+		
+		$messageIds = array("16501180") ;
+		$messageIDs = new MyMessagesMessageIDArrayType();
+		foreach( $messageIds as $m){
+			$messageIDs->setMessageID( $m );
+		}
+		$req->setMessageIDs($messageIDs);
+
+		$res = $this->cs->GetMyMessages($req);
+		return $res ;
+	}
+	
+	public function getMyMessagesHeaderByMessageIds( $messageIds ){
+		$req = new GetMyMessagesRequestType();
+		$req->setDetailLevel( "ReturnHeaders" );
+		//$req->setStartTime( gmdate('Y-m-d H:i:s', time() - 60 * 60 * 24 * 120) ) ;
+	
+		$messageIDs = new MyMessagesMessageIDArrayType();
+		foreach( $messageIds as $m){
+			$messageIDs->setMessageID( $m );
+		}
+		$req->setMessageIDs($messageIDs);
+	
+		$res = $this->cs->GetMyMessages($req);
+		return $res ;
+	}
+	
+	public function getMyMessagesText( $messageIds ){// ReturnSummary, ReturnHeaders, and ReturnMessages.
+		$req = new GetMyMessagesRequestType();
+		
+		$req->setDetailLevel( "ReturnMessages" );
+		//获取未
+		$messageIDs = new MyMessagesMessageIDArrayType();
+		foreach( $messageIds as $m){
+			$messageIDs->setMessageID( $m );
+		}
+		
+		$req->setMessageIDs($messageIDs);
+
+		$res = $this->cs->GetMyMessages($req);
+		return $res ;
+	}
+
+	public function reviseMyMessages( $messageIds , $read = null , $flagged = null  ){
+		$req = new ReviseMyMessagesRequestType() ;
+		
+		$messageIDs = new MyMessagesMessageIDArrayType();
+		foreach( $messageIds as $m){
+			$messageIDs->setMessageID( $m );
+		}
+		$req->setMessageIDs($messageIDs);
+		if( !empty($read) ){
+			$req->setRead($read) ;
+		}
+		
+		if( !empty($flagged) ){
+			$req->setFlagged($flagged) ;
+		}
+		
+		$res = $this->cs->ReviseMyMessages($req) ;
+		return $res ;
 	}
 }
