@@ -35,6 +35,7 @@ require_once 'ebay/EbatNs/GetMyMessagesResponseType.php';
 require_once 'ebay/EbatNs/ReviseMyMessagesRequestType.php';
 require_once 'ebay/EbatNs/ReviseMyMessagesResponseType.php';
 
+require_once 'ebay/EbatNs/AddMemberMessageRTQRequestType.php';
 
 class Ebay {
 	var $session ;
@@ -264,6 +265,31 @@ class Ebay {
 		}
 		
 		$res = $this->cs->ReviseMyMessages($req) ;
+		return $res ;
+	}
+	
+	/**
+	 * 回复消息
+	 * @param unknown $messageIds
+	 * @param string $read
+	 * @param string $flagged  ItemID   Body   RecipientID   Subject
+	 * @return Ambigous <ReviseMyMessagesResponseType, NULL, unknown, number>
+	 */
+	public function responseMessage( $params ){
+		$req = new AddMemberMessageRTQRequestType() ;
+		$req->setItemID($params['ItemID']);
+		
+		$MemberMessage = new MemberMessageType();
+		$MemberMessage->setBody($params['Body']);
+		$MemberMessage->setRecipientID($params['RecipientID']);
+		$MemberMessage->setSubject($params['Subject']);
+		$MemberMessage->setParentMessageID($params['MessageID']) ;
+		$MemberMessage->setDisplayToPublic(true) ;
+		$MemberMessage->setEmailCopyToSender(true) ;
+	
+		$req->setMemberMessage($MemberMessage);
+	
+		$res = $this->cs->AddMemberMessageRTQ( $req ) ;
 		return $res ;
 	}
 }

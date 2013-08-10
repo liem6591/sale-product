@@ -67,5 +67,12 @@ class EbayModel extends AppModel {
 		AND accountId ='{@#accountId#}'" ;
 		return $this->exeSqlWithFormat($sql, array('accountId'=>$accountId)) ;
 	}
+	
+	public function getMessagesNoResponse($accountId){
+		$sql = "SELECT * FROM sc_ebay_message WHERE ResponseEnabled = 'true'   AND Replied='false' 
+				and local_Replied = 'true' 
+				AND accountId ='{@#accountId#}'" ;
+		return $this->exeSqlWithFormat($sql, array('accountId'=>$accountId)) ;
+	}
 
 }

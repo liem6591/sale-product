@@ -241,7 +241,7 @@ class EBayController extends AppController
 	 * @param unknown $accountId
 	 * @return CakeResponse
 	 */
-	public function reviseMyMessages($accountId=null){
+	public function reviseMyMessages($accountId){
 		$reqMap = $this->requestMap() ;
 		$jsoncallback = $reqMap['jsonpcallback'] ;
 
@@ -302,6 +302,54 @@ class EBayController extends AppController
 		
 		return $this->response ;
 	}
+	
+	public function responseMessages($accountId=null){
+		$reqMap = $this->requestMap() ;
+		$jsoncallback = $reqMap['jsonpcallback'] ;
+
+		//标记指定账号消息状态
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		
+		$ebayParams = array(
+				'appMode'=>$account['EBAY_APP_MODE'],
+				'siteId'=>$account['EBAY_SITE_ID'],
+				'devId'=>$account['EBAY_DEV_ID'],
+				'appId'=>$account['EBAY_APP_ID'],
+				'certId'=>$account['EBAY_CERT_ID'],
+				'token'=>$account['EBAY_TOKEN']
+		) ;
+		
+		$ebay = new Ebay( $ebayParams ) ;
+		
+		//获取可读和可标记的记录
+		$NoResponseMessages = $this->EbayModel->getMessagesNoResponse($accountId) ;
+		
+		$tempIds = array() ;
+		
+		foreach($NoResponseMessages as $nrm){
+			
+			$tempIds[] = $nrm['MessageID'] ;
+			//ItemID   Body   RecipientID   Subject
+			$temp = array() ;
+			$temp['ItemID'] = $nrm['ItemID'] ;
+			$temp['Subject'] = $nrm['LCOAL_Subject'] ;
+			$temp['Body'] = $nrm['LOCAL_RESPONSE_BODY'] ;
+			$temp['RecipientID'] = $nrm['Sender'] ;
+			$temp['MessageID'] = $nrm['MessageID'] ;
+			$ebay->responseMessage($temp) ;
+		}
+		
+		if( count($tempIds) >0 ){
+			$result = $ebay->getMyMessagesHeaderByMessageIds($tempIds) ;
+			$this->EbayModel->saveMessages($result,$accountId) ;
+		}
+		
+		$this->response->type("json") ;
+		$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
+		
+		return $this->response ;
+	}
 
 	/*
 	 *
@@ -330,6 +378,7 @@ class EBayController extends AppController
  </soapenv:Body>
 </soapenv:Envelope>
 */
+	
 	function parseResopnse($res,$listingType){
 		//echo 
 		$pos = strrpos($res, "<Ack>Success</Ack>");
