@@ -398,6 +398,7 @@ class Amazonaccount extends AppModel {
 		$pendingQuantity = "" ;
 		$FBA_SELLABLE = '' ;
 		$price = '' ;
+		$fcSku = '' ;
 	
 		if(isset($data['listingId']))
 			$listingId = $data['listingId'] ;
@@ -411,87 +412,101 @@ class Amazonaccount extends AppModel {
 		if( isset($data['FBA_SELLABLE']) ){
 			$FBA_SELLABLE = $data['FBA_SELLABLE'] ;
 		}
+		
+		if( isset($data['FC_SKU']) ){
+			$fcSku = $data['FC_SKU'] ;
+		}
 	
 		if(empty($data['ASIN']))
 			return ;
 	
 		if( !empty($tt) && count($tt) >= 1){//数据存在
-			if($type == 2){
-				$sql = " UPDATE sc_amazon_account_product
-				SET
-				ASIN = '".$data['ASIN']."' ,
-				PRICE = '".$data['price']."' ,
-				LIST_ID = '$listingId' ,
-				FULFILLMENT_CHANNEL = '$fulfillment' ,
-				PADDENT_QUANTITY = '$pendingQuantity' ,
-				QUANTITY = '".$data['quantity']."',
-				ITEM_CONDITION = '".$data['itemCondition']."',
-				STATUS = 'Y',
-				ASYN_STATUS = 'Y'
-				WHERE
-				account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
-		}else if($type == 1){
-				$sql = " UPDATE sc_amazon_account_product
-				SET
-				ASIN = '".$data['ASIN']."' ,
-				PRICE = '".$data['price']."' ,
-				QUANTITY = '".$data['quantity']."',
-				STATUS = 'Y',
-				ASYN_STATUS = 'Y'
-				WHERE
-				account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
-		}else if($type == 3){
-		$sql = " UPDATE sc_amazon_account_product
-		SET
-		ASIN = '".$data['ASIN']."' ,
-		QUANTITY = '".$data['quantity']."',
-		FULFILLMENT_CHANNEL = '$fulfillment' ,
-		FBA_SELLABLE = '".$data['FBA_SELLABLE']."',
-		STATUS = 'Y',
-		ASYN_STATUS = 'Y'
-		WHERE
-		account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
-		}
-	
-		$this->query($sql) ;
+					if($type == 2){
+							$sql = " UPDATE sc_amazon_account_product
+							SET
+							ASIN = '".$data['ASIN']."' ,
+							PRICE = '".$data['price']."' ,
+							LIST_ID = '$listingId' ,
+							FC_SKU =  '$fcSku' ,
+							FULFILLMENT_CHANNEL = '$fulfillment' ,
+							PADDENT_QUANTITY = '$pendingQuantity' ,
+							QUANTITY = '".$data['quantity']."',
+							ITEM_CONDITION = '".$data['itemCondition']."',
+							STATUS = 'Y',
+							ASYN_STATUS = 'Y'
+							WHERE
+							account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
+					}else if($type == 1){
+							$sql = " UPDATE sc_amazon_account_product
+							SET
+							ASIN = '".$data['ASIN']."' ,
+							FC_SKU =  '$fcSku' ,
+							PRICE = '".$data['price']."' ,
+							QUANTITY = '".$data['quantity']."',
+							STATUS = 'Y',
+							ASYN_STATUS = 'Y'
+							WHERE
+							account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
+					}else if($type == 3){
+							$sql = " UPDATE sc_amazon_account_product
+							SET
+							ASIN = '".$data['ASIN']."' ,
+							FC_SKU =  '$fcSku' ,
+							QUANTITY = '".$data['quantity']."',
+							FULFILLMENT_CHANNEL = '$fulfillment' ,
+							FBA_SELLABLE = '".$data['FBA_SELLABLE']."',
+							STATUS = 'Y',
+							ASYN_STATUS = 'Y'
+							WHERE
+							account_id = '".$data['accountId']."' and SKU = '".$data['SKU']."' " ;
+					}
+				
+					$this->query($sql) ;
 		}else{
-		$sql = "INSERT INTO sc_amazon_account_product
-		(
-		ACCOUNT_ID,
-		ASIN,
-		PRICE,
-		CREATE_TIME,
-		SKU,
-		LIST_ID,
-		FULFILLMENT_CHANNEL,
-		PADDENT_QUANTITY,
-		QUANTITY,
-		STATUS,
-		ASYN_STATUS,
-		FBA_SELLABLE
-		)
-		VALUES
-		(
-		'".$data['accountId']."',
-		'".$data['ASIN']."',
-		'".$price."',
-		NOW(),
-		'".$data['SKU']."',
-		'$listingId',
-		'$fulfillment',
-		'$pendingQuantity',
-		'".$data['quantity']."',
-	'Y','Y',
-	'$FBA_SELLABLE'
-	)
-	" ;
-	$this->query($sql) ;
+					$sql = "INSERT INTO sc_amazon_account_product
+					(
+					ACCOUNT_ID,
+					ASIN,
+					PRICE,
+					CREATE_TIME,
+					SKU,
+					FC_SKU,
+					LIST_ID,
+					FULFILLMENT_CHANNEL,
+					PADDENT_QUANTITY,
+					QUANTITY,
+					STATUS,
+					ASYN_STATUS,
+					FBA_SELLABLE
+					)
+					VALUES
+					(
+					'".$data['accountId']."',
+					'".$data['ASIN']."',
+					'".$price."',
+					NOW(),
+					'".$data['SKU']."',
+					'".$fcSku."',
+					'$listingId',
+					'$fulfillment',
+					'$pendingQuantity',
+					'".$data['quantity']."',
+				'Y','Y',
+				'$FBA_SELLABLE'
+				)
+				" ;
+				$this->query($sql) ;
 	}
 	}
 	
 	function asynProductStatusStart($accountId,$reportType){
-		//clear status
+
 		$sql = "update sc_amazon_account_product set asyn_status = '' where account_id = '$accountId'" ;
+		
+		if( $reportType != '_GET_AFN_INVENTORY_DATA_' ){
+			$sql = "update sc_amazon_account_product set asyn_status = '' where account_id = '$accountId'   and FULFILLMENT_CHANNEL not like '%AMAZON%' " ;
+		}
+		//clear status
 		$this->query($sql) ;
 	}
 	
@@ -603,7 +618,7 @@ class Amazonaccount extends AppModel {
 	function updateAccountAsyn3($accountId ,$request , $user=null){
 		$sql = "UPDATE sc_amazon_account_asyn 
 					SET 
-					STATUS = 'complete'
+					STATUS = 'complete', end_time = now()
 					WHERE
 					ACCOUNT_ID = '$accountId' and REPORT_TYPE = '".$request['reportType']."' and  ( status is null or status = '')" ;
 		 $array = $this->query($sql);

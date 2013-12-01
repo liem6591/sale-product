@@ -206,7 +206,7 @@ class TaskAsynAmazonController extends AppController {
 	}
 	
 	//同步产品信息
-	public function asynAmazonFba($accountId){
+	public function asynAmazonFba($accountId,$_reportId=null){
 		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
@@ -220,6 +220,17 @@ class TaskAsynAmazonController extends AppController {
 				$account['MARKETPLACE_ID'] ,
 				$account['MERCHANT_IDENTIFIER']
 		) ;
+		
+		if( !empty($_reportId) ){
+			$request = $amazon->getFBAInventory3($accountId , $_reportId ) ;
+					//$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_AFN_INVENTORY_DATA_") ;
+
+			$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$_reportId,"reportType"=>"_GET_AFN_INVENTORY_DATA_") , $user) ;
+			$this->response->type("json") ;
+			$this->response->body( "success")   ;
+		
+			return $this->response ;
+		}
 	
 		if( empty($accountAsyn) ){//未开始获取
 		}else{
@@ -340,7 +351,7 @@ class TaskAsynAmazonController extends AppController {
 	 * 
 	 * @param unknown_type $accountId
 	 */
-	public function asynAmazonProducts($accountId){
+	public function asynAmazonProducts($accountId,$_reportId = null ){
 		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_FLAT_FILE_OPEN_LISTINGS_DATA_") ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
     	$account = $account[0]['sc_amazon_account'] ;
@@ -354,6 +365,19 @@ class TaskAsynAmazonController extends AppController {
 			 	$account['MARKETPLACE_ID'] ,
 			 	$account['MERCHANT_IDENTIFIER'] 
 		) ;
+    	
+    	if( !empty($_reportId) ){
+    		$this->Amazonaccount->asynProductStatusStart($accountId , "_GET_FLAT_FILE_OPEN_LISTINGS_DATA_") ;
+    		$request = $amazon->getProductReport3($accountId , $_reportId  ,$this->Log) ;
+    		$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_FLAT_FILE_OPEN_LISTINGS_DATA_") ;
+    			
+    		$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$_reportId,"reportType"=>"_GET_FLAT_FILE_OPEN_LISTINGS_DATA_") , $user) ;
+    		
+    		$this->response->type("json") ;
+    		$this->response->body( "success")   ;
+    		
+    		return $this->response ;
+    	}
 		
 		if( empty($accountAsyn) ){//未开始获取
 		}else{
@@ -384,6 +408,8 @@ class TaskAsynAmazonController extends AppController {
 
 		return $this->response ;
 	}
+	
+
 	
 	/**
 	 * 同步产品详细信息
@@ -787,7 +813,7 @@ class TaskAsynAmazonController extends AppController {
 		return $this->response ;
 	}
 	
-	public function getFeedReport2($accountId,$reportType){
+	public function getFeedReport2($accountId,$reportType,$reportId=null){
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,$reportType) ;
 	
@@ -801,12 +827,15 @@ class TaskAsynAmazonController extends AppController {
 				$account['MARKETPLACE_ID'] ,
 				$account['MERCHANT_IDENTIFIER']
 		) ;
+		if(empty($reportId))
+			$reportId = $accountAsyn[0]['sc_amazon_account_asyn']['REPORT_REQUEST_ID'] ;
 	
-		$request = $amazon->getFeedReport2($accountId,$reportType,$accountAsyn[0]['sc_amazon_account_asyn']['REPORT_REQUEST_ID']) ;
+		$request = $amazon->getFeedReport2($accountId,$reportType,$reportId) ;
 		if( !empty($request) ){
-	
 			$user =  $this->getCookUser() ;
 			$this->Amazonaccount->updateAccountAsyn2($accountId ,$request , $user) ;
+			
+			debug($request) ;
 		}
 	
 		$this->response->type("json") ;
@@ -815,7 +844,7 @@ class TaskAsynAmazonController extends AppController {
 		return $this->response ;
 	}
 	
-	public function getFeedReport3($accountId,$reportType){
+	public function getFeedReport3($accountId,$reportType,$reportId=null){
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
 		$amazon = new Amazon(
@@ -828,7 +857,8 @@ class TaskAsynAmazonController extends AppController {
 				$account['MERCHANT_IDENTIFIER']
 		) ;
 		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,$reportType) ;
-		$reportId = $accountAsyn[0]['sc_amazon_account_asyn']['REPORT_ID'] ;
+		if(empty($reportId))
+			$reportId = $accountAsyn[0]['sc_amazon_account_asyn']['REPORT_ID'] ;
 	
 		$this->Amazonaccount->asynProductStatusStart($accountId , $reportType) ;
 		$request = $amazon->getFeedReport3($accountId,$reportType , $reportId ) ;
@@ -838,7 +868,7 @@ class TaskAsynAmazonController extends AppController {
 		$user =  $this->getCookUser() ;
 		$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>$reportType) , $user) ;
 		//}
-	
+		debug($request) ;
 		$this->response->type("json") ;
 		$this->response->body( "success")   ;
 	

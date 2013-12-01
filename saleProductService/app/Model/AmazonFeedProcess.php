@@ -107,8 +107,10 @@ class AmazonFeedProcess extends AppModel {
 		$amazonAccount  = ClassRegistry::init("Amazonaccount") ;
 		$log  = ClassRegistry::init("Log") ;
 		
+		
 		$asin 		= $productItem['asin'] ;
 		$sku  		= $productItem['seller-sku'] ;
+		$fcsku  		= $productItem['fulfillment-channel-sku'] ;
 		$quantity  	= $productItem['Quantity Available'] ;
 		$sellable 	= $productItem['Warehouse-Condition-code'] ;
 		
@@ -122,6 +124,7 @@ class AmazonFeedProcess extends AppModel {
 			$amazonAccount->saveAccountProductForFBAByAsyn(array(
 					'ASIN'=>$asin,
 					'SKU'=>$sku,
+					'FC_SKU'=>$fcsku,
 					'accountId'=>$accountId,
 					'FBA_SELLABLE'=>$sellable,
 					'fulfillment'=>$fulfillment,

@@ -204,14 +204,14 @@ class Ebay {
 	public function getMyMessagesHeader(){
 		$req = new GetMyMessagesRequestType();
 		$req->setDetailLevel( "ReturnHeaders" );
-		//$req->setStartTime( gmdate('Y-m-d H:i:s', time() - 60 * 60 * 24 * 120) ) ;
+		$req->setStartTime( gmdate('Y-m-d H:i:s', time() - 60 * 60 * 24 * 120) ) ;
 		
-		$messageIds = array("16501180") ;
+		/*$messageIds = array("16501180") ;
 		$messageIDs = new MyMessagesMessageIDArrayType();
 		foreach( $messageIds as $m){
 			$messageIDs->setMessageID( $m );
 		}
-		$req->setMessageIDs($messageIDs);
+		$req->setMessageIDs($messageIDs);*/
 
 		$res = $this->cs->GetMyMessages($req);
 		return $res ;
@@ -224,7 +224,7 @@ class Ebay {
 	
 		$messageIDs = new MyMessagesMessageIDArrayType();
 		foreach( $messageIds as $m){
-			$messageIDs->setMessageID( $m );
+			$messageIDs->addMessageID( $m );
 		}
 		$req->setMessageIDs($messageIDs);
 	
@@ -239,7 +239,7 @@ class Ebay {
 		//获取未
 		$messageIDs = new MyMessagesMessageIDArrayType();
 		foreach( $messageIds as $m){
-			$messageIDs->setMessageID( $m );
+			$messageIDs->addMessageID( $m );
 		}
 		
 		$req->setMessageIDs($messageIDs);

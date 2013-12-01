@@ -15,19 +15,27 @@ class EbayModel extends AppModel {
 	}
 	
 	public function saveMessages($result,$accountId){
+		
 		$t = str_replace("soapenv:Envelope", "soapenvEnvelope", $result) ;
 		$t = str_replace("soapenv:Body", "soapenvBody", $t) ;
 		$xml = new  SimpleXMLElement($t);
 		
 		$messages = $xml->soapenvBody->GetMyMessagesResponse->Messages ;
 		$objectVars = get_object_vars($messages);
-		foreach( $objectVars as $message  ){
+		
+		$temp = $objectVars ;
+		if( is_array($objectVars['Message']) ){
+			$temp = $objectVars['Message'] ;
+		}
+		
+		foreach($temp as $message  ){
 			$message = get_object_vars($message);
 			$message['ResponseEnabled'] = (string)$message['ResponseDetails']->ResponseEnabled ;
 			$message['FolderID'] = (string)$message['Folder']->FolderID  ;
 			$message['guid'] = $this->create_guid() ;
 			$message['accountId'] = $accountId ;
 			
+			if(empty($message['MessageID'])) continue ;
 			
 			$m = $this->getObject("sql_ebay_message_getByMessageId", $message) ;
 			if(empty($m)){
@@ -37,6 +45,41 @@ class EbayModel extends AppModel {
 			}
 		} 
 		
+	}
+	
+	public function saveMessagesForText($result,$accountId){
+	
+		//echo $result ;
+	
+		$t = str_replace("soapenv:Envelope", "soapenvEnvelope", $result) ;
+		$t = str_replace("soapenv:Body", "soapenvBody", $t) ;
+		$xml = new  SimpleXMLElement($t);
+	
+		$messages = $xml->soapenvBody->GetMyMessagesResponse->Messages ;
+		$objectVars = get_object_vars($messages);
+		
+		$temp = $objectVars ;
+		if( is_array($objectVars['Message']) ){
+			$temp = $objectVars['Message'] ;
+		}
+		
+		foreach($temp as $message  ){
+			$message = get_object_vars($message);
+			$message['ResponseEnabled'] = (string)$message['ResponseDetails']->ResponseEnabled ;
+			$message['FolderID'] = (string)$message['Folder']->FolderID  ;
+			$message['guid'] = $this->create_guid() ;
+			$message['accountId'] = $accountId ;
+			
+			if(empty($message['MessageID'])) continue ;
+
+			$m = $this->getObject("sql_ebay_message_getByMessageId", $message) ;
+			if(empty($m)){
+				$this->exeSql("sql_ebay_message_insert", $message) ;
+			}else{
+				$this->exeSql("sql_ebay_message_update", $message) ;
+			}
+		}
+	
 	}
 	
 	public function getMessageIdsNoText($accountId){

@@ -63,32 +63,31 @@ class DATABASE_CONFIG {
 		'datasource' => 'Database/Mysql',
 		'persistent' => false,
 		'host' => 'localhost',
-		'login' => 'root',
-		'password' => '',
-		'database' => 'sale_product1',
+		'login' => 'smart_db',
+		'password' => 'T}yR,ey.6NUK',
+		'database' => 'smart_eseller',
 		'prefix' => '',
-		'encoding' => 'UTF8'
+		'encoding' => 'utf8',
 	);
-	
-	public $gbk = array(
+
+       public $gbk = array(
 		'datasource' => 'Database/Mysql',
 		'persistent' => false,
 		'host' => 'localhost',
-		'login' => 'root',
-		'password' => '',
-		'database' => 'sale_product1',
+		'login' => 'smart_db',
+		'password' => 'T}yR,ey.6NUK',
+		'database' => 'smart_eseller',
 		'prefix' => '',
-		'encoding' => 'GBK'
+		'encoding' => 'gbk',
 	);
-	
 
 	public $test = array(
 		'datasource' => 'Database/Mysql',
 		'persistent' => false,
 		'host' => 'localhost',
-		'login' => 'root',
-		'password' => '',
-		'database' => 'sale_product',
+		'login' => 'smart_db',
+		'password' => 'T}yR,ey.6NUK',
+		'database' => 'smart_eseller',
 		'prefix' => '',
 		'encoding' => 'utf8',
 	);

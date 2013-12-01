@@ -190,15 +190,20 @@ class EBayController extends AppController
 				'token'=>$account['EBAY_TOKEN']
 		) ;
 	
-		//ob_clean() ;
+		ob_clean() ;
+		
+		//debug($ebayParams)  ;
+		
 		$ebay = new Ebay( $ebayParams ) ;
 		
 		$result = $ebay->getMyMessagesHeader($accountId) ;//"117031"
 		
+		echo $result ;
+		
 		$this->EbayModel->saveMessages($result,$accountId) ;
 	
 		$this->response->type("json") ;
-		$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
+		$this->response->body("")   ;
 	
 		return $this->response ;
 	}
@@ -218,15 +223,17 @@ class EBayController extends AppController
 				'certId'=>$account['EBAY_CERT_ID'],
 				'token'=>$account['EBAY_TOKEN']
 		) ;
-		//ob_clean() ;
+		
+		
+		ob_clean() ;
 		$ebay = new Ebay( $ebayParams ) ;
 		
 		$messagIds = $this->EbayModel->getMessageIdsNoText($accountId) ;
 		if( !empty($messagIds) ){
 			$result = $ebay->getMyMessagesText( $messagIds ) ;//"117031"
-			$this->EbayModel->saveMessages($result,$accountId) ;
+			$this->EbayModel->saveMessagesForText($result,$accountId) ;
 			$this->response->type("json") ;
-			$this->response->body($jsoncallback.'('.json_encode($result).')' )   ;
+			$this->response->body("") ;//($jsoncallback.'('.json_encode($result).')' )   ;
 		}else{
 			$this->response->type("json") ;
 			$this->response->body($jsoncallback.'()' )   ;
