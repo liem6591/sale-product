@@ -9,6 +9,7 @@ App :: import('Vendor', 'Snoopy');
 App :: import('Vendor', 'simple_html_dom');
 App :: import('Vendor', 'Amazon');
 App :: import('Vendor', 'AmazonOrder');
+App :: import('Vendor', 'AmazonFulfillment');
 
 class TaskAsynAmazonController extends AppController {
 	
@@ -544,6 +545,8 @@ class TaskAsynAmazonController extends AppController {
 	
 	
 	
+	
+	
 	public function listOrders($accountId){
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 	
@@ -640,58 +643,6 @@ class TaskAsynAmazonController extends AppController {
 	}
 	
 	/**
-	 * 价格更新
-	 */
-/*	public function price(){
-		$params = $this->request->data  ;
-		$accountId = $params["accountId"] ;
-	
-		$user =  $this->getCookUser() ;
-		$loginId = $user["LOGIN_ID"] ;
-	
-		$account = $this->Amazonaccount->getAccount($accountId) ;
-		$account = $account[0]['sc_amazon_account'] ;
-	
-		$products = $this->Amazonaccount->listAccountUpdatableProductForPrice( $account["ID"] ) ;
-	
-		$MerchantIdentifier = $account["MERCHANT_IDENTIFIER"] ;
-	
-		$id = "UC_Price_".date('U') ;
-	
-		$_products = array() ;
-		for( $i = 0 ;$i < count($products) ;$i++  ){
-			$product = $products[$i]['sc_amazon_account_product'] ;
-	
-			$sku = $product["SKU"] ;
-			$price = $product["FEED_PRICE"] ;
-	
-			$_products[] = array("SKU"=>$sku,"FEED_PRICE"=>$price) ;
-		}
-	
-		$Feed = $this->Amazonaccount->getPriceFeed($MerchantIdentifier , $_products) ;
-	
-		$account = $this->Amazonaccount->getAccount($accountId) ;
-		$account = $account[0]['sc_amazon_account'] ;
-		$amazon = new Amazon(
-				$account['AWS_ACCESS_KEY_ID'] ,
-				$account['AWS_SECRET_ACCESS_KEY'] ,
-				$account['APPLICATION_NAME'] ,
-				$account['APPLICATION_VERSION'] ,
-				$account['MERCHANT_ID'] ,
-				$account['MARKETPLACE_ID'] ,
-				$account['MERCHANT_IDENTIFIER']
-		) ;
-	
-		$result = $amazon->updatePrice($accountId,$Feed,$loginId) ;
-	
-		$this->Amazonaccount->saveAccountFeed($result) ;
-	
-		$this->response->type("html");
-		$this->response->body("<script type='text/javascript'>window.parent.uploadSuccess('".$id."');</script>");
-		return $this->response;
-	}*/
-	
-	/**
 	 * 库存更新
 	 */
 	public function quantity( $accountId  ){
@@ -761,6 +712,36 @@ class TaskAsynAmazonController extends AppController {
 		$this->response->type("html");
 		$this->response->body("success");
 		return $this->response;
+	}
+	
+	/**
+	 * 获取Fulfillment inventory
+	 */
+	public function listInventorySupply($accountId){
+		$id = "ListInventory_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		
+		$params = $this->requestMap()  ;
+		//$Feed = $params['feed'] ;
+		
+		$amazon = new AmazonFulfillment(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		$result = $amazon->listInventorySupply($accountId)  ;
+		
+		print( $result ) ;
+		//$this->Amazonaccount->saveAccountFeed($result) ;
+		
+		//$this->response->type("html");
+		//$this->response->body("success");
+		//return $this->response;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////
