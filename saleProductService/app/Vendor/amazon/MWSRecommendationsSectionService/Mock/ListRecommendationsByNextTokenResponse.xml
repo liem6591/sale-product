@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListRecommendationsByNextTokenResponse xmlns="https://mws.amazonservices.com/Recommendations/2013-04-01">
+    $XmlUtl.sampleXml($member, $SiblingLists, 1)
+    $XmlUtl.sampleXml($member, $SiblingLists, 1)
+    $XmlUtl.sampleXml($member, $SiblingLists, 1)
+</ListRecommendationsByNextTokenResponse>

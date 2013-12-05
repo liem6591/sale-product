@@ -1,0 +1,160 @@
+<?php
+/** 
+ *  PHP Version 5
+ *
+ *  @category    Amazon
+ *  @package     MWSRecommendationsSectionService
+ *  @copyright   Copyright 2008-2013 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  @link        http://aws.amazon.com
+ *  @license     http://aws.amazon.com/apache2.0  Apache License, Version 2.0
+ *  @version     2013-04-01
+ */
+ 
+/******************************************************************************* 
+ * 
+ *  MWS Recommendations Section Service PHP5 Library
+ *  Generated: Thu Jun 06 14:24:33 PDT 2013
+ * 
+ */
+
+/**
+ *  @see MWSRecommendationsSectionService_Model
+ */
+
+require_once (VENDOR_PATH.'/amazon/MWSRecommendationsSectionService/Model.php');
+
+
+/**
+ * MWSRecommendationsSectionService_Model_CategoryQuery
+ * 
+ * Properties:
+ * <ul>
+ * 
+ * <li>RecommendationCategory: string</li>
+ * <li>FilterOptions: array</li>
+ *
+ * </ul>
+ */
+
+ class MWSRecommendationsSectionService_Model_CategoryQuery extends MWSRecommendationsSectionService_Model {
+
+    public function __construct($data = null)
+    {
+        $this->_fields = array (
+            'RecommendationCategory' => array('FieldValue' => null, 'FieldType' => 'string'),
+            'FilterOptions' => array('FieldValue' => array(), 'FieldType' => array('string'), 'ListMemberName' => 'FilterOption'),
+        );
+	    parent::__construct($data);
+    }
+
+    /**
+     * Get the value of the RecommendationCategory property.
+     *
+     * @return String RecommendationCategory.
+     */
+    public function getRecommendationCategory()
+	{
+	    return $this->_fields['RecommendationCategory']['FieldValue'];
+    }
+
+    /**
+     * Set the value of the RecommendationCategory property.
+     *
+     * @param string recommendationCategory
+     * @return this instance
+     */
+    public function setRecommendationCategory($value)
+	{
+	    $this->_fields['RecommendationCategory']['FieldValue'] = $value;
+        return $this;
+    }
+
+    /**
+     * Check to see if RecommendationCategory is set.
+     *
+     * @return true if RecommendationCategory is set.
+     */
+    public function isSetRecommendationCategory()
+	{
+	            return !is_null($this->_fields['RecommendationCategory']['FieldValue']);
+		    }
+
+    /**
+     * Set the value of RecommendationCategory, return this.
+     *
+     * @param recommendationCategory
+     *             The new value to set.
+     *
+     * @return This instance.
+     */
+    public function withRecommendationCategory($value)
+	{
+        $this->setRecommendationCategory($value);
+        return $this;
+    }
+
+    /**
+     * Get the value of the FilterOptions property.
+     *
+     * @return List<String> FilterOptions.
+     */
+    public function getFilterOptions()
+	{
+        if ($this->_fields['FilterOptions']['FieldValue'] == null)
+		{
+            $this->_fields['FilterOptions']['FieldValue'] = array();
+        }
+	    return $this->_fields['FilterOptions']['FieldValue'];
+    }
+
+    /**
+     * Set the value of the FilterOptions property.
+     *
+     * @param array filterOptions
+     * @return this instance
+     */
+    public function setFilterOptions($value)
+	{
+        if (!$this->_isNumericArray($value)) {
+            $value = array ($value);
+        }
+	    $this->_fields['FilterOptions']['FieldValue'] = $value;
+        return $this;
+    }
+
+    /**
+     * Clear FilterOptions.
+     */
+    public function unsetFilterOptions()
+	{
+        $this->_fields['FilterOptions']['FieldValue'] = array();
+    }
+
+    /**
+     * Check to see if FilterOptions is set.
+     *
+     * @return true if FilterOptions is set.
+     */
+    public function isSetFilterOptions()
+	{
+	            return !empty($this->_fields['FilterOptions']['FieldValue']);
+		    }
+
+    /**
+     * Add values for FilterOptions, return this.
+     *
+     * @param filterOptions
+     *             New values to add.
+     *
+     * @return This instance.
+     */
+    public function withFilterOptions()
+	{
+        foreach (func_get_args() as $FilterOptions)
+		{
+            $this->_fields['FilterOptions']['FieldValue'][] = $FilterOptions;
+        }
+        return $this;
+    }
+
+}
