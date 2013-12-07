@@ -10,6 +10,8 @@ App :: import('Vendor', 'simple_html_dom');
 App :: import('Vendor', 'Amazon');
 App :: import('Vendor', 'AmazonOrder');
 App :: import('Vendor', 'AmazonFulfillment');
+App :: import('Vendor', 'AmazonRecommendations');
+App :: import('Vendor', 'AmazonInbound');
 
 class TaskAsynAmazonController extends AppController {
 	
@@ -742,6 +744,97 @@ class TaskAsynAmazonController extends AppController {
 		//$this->response->type("html");
 		//$this->response->body("success");
 		//return $this->response;
+	}
+	
+	public function listRecommendations($accountId){
+		$id = "listRecommendations_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+	
+		$params = $this->requestMap()  ;
+		//$Feed = $params['feed'] ;
+	
+		$amazon = new AmazonRecommendations(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		$result = $amazon->listRecommendations($accountId)  ;
+	
+		print( $result ) ;
+		//$this->Amazonaccount->saveAccountFeed($result) ;
+	
+		//$this->response->type("html");
+		//$this->response->body("success");
+		//return $this->response;
+	}
+	
+	public function listInboundShipments($accountId){
+		$id = "listRecommendations_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+	
+		$params = $this->requestMap()  ;
+		
+		$amazon = new AmazonInbound(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		$result = $amazon->listInboundShipments($accountId)  ;
+	
+		print( $result ) ;
+	}
+	
+	public function listInboundShipmentItems($accountId){
+		$id = "listRecommendations_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+	
+		$params = $this->requestMap()  ;
+	
+		$amazon = new AmazonInbound(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		$result = $amazon->listInboundShipmentItems($accountId)  ;
+	
+	}
+	
+	public function createInboundShipmentPlan($accountId,$planId ){
+		
+		
+		$id = "createInboundShipmentPlan_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		
+		$params = $this->requestMap()  ;
+		
+		$amazon = new AmazonInbound(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		
+		$result = $amazon->createInboundShipmentPlan($accountId,$planId)  ;
+		
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////
