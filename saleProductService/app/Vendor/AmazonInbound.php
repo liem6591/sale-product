@@ -12,11 +12,35 @@ require_once("amazon/FBAInboundServiceMWS/Model/ListInboundShipmentItemsResult.p
 require_once("amazon/FBAInboundServiceMWS/Model/CreateInboundShipmentPlanRequest.php");
 require_once("amazon/FBAInboundServiceMWS/Model/CreateInboundShipmentPlanResult.php");
 
+require_once("amazon/FBAInboundServiceMWS/Model/CreateInboundShipmentRequest.php");
+require_once("amazon/FBAInboundServiceMWS/Model/CreateInboundShipmentResult.php");
+
+require_once("amazon/FBAInboundServiceMWS/Model/UpdateInboundShipmentRequest.php");
+require_once("amazon/FBAInboundServiceMWS/Model/UpdateInboundShipmentResult.php");
+
+require_once("amazon/FBAInboundServiceMWS/Model/PutTransportContentRequest.php");
+require_once("amazon/FBAInboundServiceMWS/Model/PutTransportContentResult.php");
 
 require_once("amazon/FBAInboundServiceMWS/Model/Address.php");
 require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentPlanRequestItemList.php");
 require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentPlanRequestItem.php");
 require_once("amazon/FBAInboundServiceMWS/Model/ShipmentStatusList.php");
+
+
+require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentItem.php");
+require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentItemList.php");
+require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentHeader.php");
+require_once("amazon/FBAInboundServiceMWS/Model/TransportDetailInput.php");
+
+require_once("amazon/FBAInboundServiceMWS/Model/PartneredSmallParcelDataInput.php");
+require_once("amazon/FBAInboundServiceMWS/Model/NonPartneredSmallParcelDataInput.php");
+require_once("amazon/FBAInboundServiceMWS/Model/PartneredLtlDataInput.php");
+require_once("amazon/FBAInboundServiceMWS/Model/NonPartneredLtlDataInput.php");
+require_once("amazon/FBAInboundServiceMWS/Model/NonPartneredSmallParcelPackageInputList.php");
+require_once("amazon/FBAInboundServiceMWS/Model/NonPartneredSmallParcelPackageInput.php");
+
+require_once("amazon/FBAInboundServiceMWS/Model/Contact.php");
+
 
 require_once("amazon/FBAInboundServiceMWS/Exception.php");
 
@@ -59,8 +83,7 @@ class AmazonInbound {
 	 * step 1
 	 */
 	function  createInboundShipmentPlan($accountId,$planId){
-		$System = ClassRegistry::init("System") ;
-		
+
 		$platform = $this->getAccountPlatform($accountId) ;
 		$System = ClassRegistry::init("System") ;
 		
@@ -136,25 +159,247 @@ class AmazonInbound {
 	/**
 	 * step 2
 	 */
-	function createInboundShipment(){
+	function createInboundShipment($accountId,$address, $ship ,$skuMembers){
+
+		$platform = $this->getAccountPlatform($accountId) ;
+		$System = ClassRegistry::init("System") ;
+		
+		$config = array (
+				'ServiceURL' =>  $platform['AMAZON_INBOUND_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3
+		);
+		
+		$service = new FBAInboundServiceMWS_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION,
+				$config);
+		
+		
+		$request = new FBAInboundServiceMWS_Model_CreateInboundShipmentRequest();
+		$request->setSellerId( $this->MERCHANT_ID );
+		$request->setShipmentId( $ship['shipmentId'] ) ;
+	
+		$header = new FBAInboundServiceMWS_Model_InboundShipmentHeader() ;
+		$header->setShipmentName( $ship['shipmentName'] ) ;
+		$header->setDestinationFulfillmentCenterId( $ship['destinationFulfillmentCenterId'] ) ;
+		//$header->setAreCasesRequired($value) ;
+		$header->setShipmentStatus("WORKING") ;
+		$header->setLabelPrepPreference( $ship['labelPrepType'] ) ;
+		$header->setShipFromAddress($address) ;
+		$request->setInboundShipmentHeader($header) ;
+		
+		$items = new FBAInboundServiceMWS_Model_InboundShipmentItemList() ;
+		$memberArray = array();
+		foreach ($skuMembers as $skumember) {
+			$si = new FBAInboundServiceMWS_Model_InboundShipmentItem() ;
+			$si->setSellerSKU($skumember->getSellerSKU()) ;
+			$si->setQuantityShipped( $skumember->getQuantity() ) ;
+			$memberArray[] = $si ;
+		}
+		$items->setmember($memberArray) ;
+		$request->setInboundShipmentItems($items) ;
+		
+		try {
+			$response = $service->CreateInboundShipment($request);
+				
+			if ($response->isSetCreateInboundShipmentResult()) {
+				$result = $response->getCreateInboundShipmentResult();
+				$shipId = $result->getShipmentId() ;
+				return $shipId ;
+			}
+		
+		
+		} catch (FBAInboundServiceMWS_Exception $ex) {
+			echo("Caught Exception: " . $ex->getMessage() . "\n");
+			echo("Response Status Code: " . $ex->getStatusCode() . "\n");
+			echo("Error Code: " . $ex->getErrorCode() . "\n");
+			echo("Error Type: " . $ex->getErrorType() . "\n");
+			echo("Request ID: " . $ex->getRequestId() . "\n");
+			echo("XML: " . $ex->getXML() . "\n");
+			echo("ResponseHeaderMetadata: " . $ex->getResponseHeaderMetadata() . "\n");
+		}
+		
+	}
+	
+	/**
+	 * 获取label
+	 */
+	function  getPackageLabels(){
+		
+	}
+	
+	/**
+	 * 获取TrackNumber状态
+	 */
+	function getTransportContent(){
 		
 	}
 	
 	/**
 	 * step 3
 	 */
-	function putTransportContent(){
-	
+	function putTransportContent($accountId,$shipmentId){
+		$platform = $this->getAccountPlatform($accountId) ;
+		$System = ClassRegistry::init("System") ;
+		
+		$config = array (
+				'ServiceURL' =>  $platform['AMAZON_INBOUND_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3
+		);
+		
+		$service = new FBAInboundServiceMWS_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION,
+				$config);
+		
+		
+		$request = new FBAInboundServiceMWS_Model_PutTransportContentRequest();
+		$request->setSellerId( $this->MERCHANT_ID );
+		
+		$shippmentType = "SP" ;
+		$isPartnered = false ;
+		
+		$ship = $System->getObject("select * from sc_fba_inbound_plan
+					where shipment_id= '{@#shipmentId#}' and account_id = '{@#accountId#}' ",array("shipmentId"=>$shipmentId,"accountId"=>$accountId)) ;
+		
+		//true or false 
+		$request->setIsPartnered( $ship['IS_PARTNERED'] ) ;
+		$request->setShipmentId($shipmentId) ;
+		/**
+		    SP – Small Parcel
+			LTL – Less Than Truckload/Full Truckload (LTL/FTL)
+		 */
+		$request->setShipmentType( $ship['SHIPMENT_TYPE'] ) ;
+		$transportDetailInput = new  FBAInboundServiceMWS_Model_TransportDetailInput() ;
+		
+		if( $shippmentType == 'SP'  ){
+			if( $isPartnered ){
+				/*$detailData = new FBAInboundServiceMWS_Model_PartneredSmallParcelDataInput() ;
+				$spInputList = new FBAInboundServiceMWS_Model_PartneredSmallParcelPackageInputList() ;
+				$spInput= new FBAInboundServiceMWS_Model_PartneredSmallParcelPackageInput() ;
+				$spInputList->setmember($value) ;
+				$detailData->setPackageList($spInputList) ;
+				$transportDetailInput->setPartneredSmallParcelData($detailData) ;*/
+			}else{
+				$detailData = new FBAInboundServiceMWS_Model_NonPartneredSmallParcelDataInput() ;
+				$detailData->setCarrierName( $ship['CARRIER_NAME'] ) ;
+				
+				$spInputList = new FBAInboundServiceMWS_Model_NonPartneredSmallParcelPackageInputList() ;
+				
+				$spInput= new FBAInboundServiceMWS_Model_NonPartneredSmallParcelPackageInput() ;
+				$spInput->setTrackingId("") ;
+				
+				$detailData->setPackageList($value) ;
+				$transportDetailInput->setNonPartneredSmallParcelData($detailData) ;
+			}
+		}/*else if( $shippmentType == 'LTL'  ){
+			if( $isPartnered ){
+				$detailData1 = new FBAInboundServiceMWS_Model_PartneredLtlDataInput() ;
+				$contact = new FBAInboundServiceMWS_Model_Contact() ;
+				$contact->setEmail($value) ;
+				$contact->setFax($value) ;
+				$contact->setName($value) ;
+				$contact->setPhone($value) ;
+				$detailData1->setContact($contact) ;
+				$detailData1->setBoxCount($value) ;
+				$detailData1->setFreightReadyDate($value) ;
+				$transportDetailInput->setPartneredLtlData($detailData1) ;
+			}else{
+				$detailData2 = new FBAInboundServiceMWS_Model_NonPartneredLtlDataInput() ;
+				$detailData2->setCarrierName($value) ;
+				$detailData2->setProNumber($value) ;
+				$transportDetailInput->setNonPartneredLtlData($detailData2) ;
+			}
+		}*/
+		
+		$request->setTransportDetails($value) ;
 	}
 	
 	/**
 	 * step 4
 	 */
-	function updateInboundShipment(){
+	function updateInboundShipment($accountId , $shipmentId  ){
+		$platform = $this->getAccountPlatform($accountId) ;
+		$System = ClassRegistry::init("System") ;
 		
+		$config = array (
+				'ServiceURL' =>  $platform['AMAZON_INBOUND_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3
+		);
+		
+		$service = new FBAInboundServiceMWS_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION,
+				$config);
+		
+		$request = new FBAInboundServiceMWS_Model_UpdateInboundShipmentRequest();
+		$request->setSellerId( $this->MERCHANT_ID );
+		$request->setShipmentId($shipmentId) ;
+		//通过shippmentId获取header
+		$ship = $System->getObject("select * from sc_fba_inbound_plan 
+					where shipment_id= '{@#shipmentId#}' and account_id = '{@#accountId#}' ",array("shipmentId"=>$shipmentId,"accountId"=>$accountId)) ;
+		
+		$header = new FBAInboundServiceMWS_Model_InboundShipmentHeader() ;
+		$header->setShipmentName( $ship['SHIPMENT_NAME'] ) ;
+		$header->setDestinationFulfillmentCenterId( $ship['DESTINATION_FULFILLMENT_CENTER_ID'] ) ;
+		$header->setShipmentStatus($ship['FIX_SHIP_STATUS']) ;
+		$header->setLabelPrepPreference( $ship['LABEL_PREP_TYPE'] ) ;
+		
+		$Address = new FBAInboundServiceMWS_Model_Address() ;
+		$Address->setName( $ship['NAME'] ) ;
+		$Address->setAddressLine1(  $ship['ADDRESS_LINE1']  ) ;
+		$Address->setAddressLine2(  $ship['ADDRESS_LINE2'] ) ;
+		$Address->setDistrictOrCounty(  $ship['DISTRICT_OR_COUNTY'] ) ;
+		$Address->setCity(  $ship['CITY'] ) ;
+		$Address->setStateOrProvinceCode(  $ship['STATE_OR_PROVINCE_CODE'] ) ;
+		$Address->setCountryCode(  $ship['COUNTRY_CODE'] ) ;
+		$Address->setPostalCode(  $ship['POSTAL_CODE'] ) ;
+		$header->setShipFromAddress($Address) ;
+		
+		$request->setInboundShipmentHeader($header) ;
+		//通过ID获取items
+		$items = new FBAInboundServiceMWS_Model_InboundShipmentItemList() ;
+		$memberArray = array();
+		$skuMembers = $System->exeSqlWithFormat("select * from sc_fba_inbound_plan_items
+				where shipment_id= '{@#shipmentId#}' and account_id = '{@#accountId#}' ",array("shipmentId"=>$shipmentId,"accountId"=>$accountId)) ;
+		foreach ($skuMembers as $skumember) {
+			$si = new FBAInboundServiceMWS_Model_InboundShipmentItem() ;
+			$si->setSellerSKU($skumember['SELLER_SKU']) ;
+			
+			$quantity = $skumember['QUANTITY_SHIPPED'] ;
+			if( !empty( $skumember['FIX_QUANTITY']  ) ){
+				$quantity = $skumember['FIX_QUANTITY']  ;
+			}
+			$si->setQuantityShipped( $quantity ) ;
+			$memberArray[] = $si ;
+		}
+		$items->setmember($memberArray) ;
+		$request->setInboundShipmentItems($items) ;
+		
+	    try {
+	        $response = $service->UpdateInboundShipment($request);
+	     } catch (FBAInboundServiceMWS_Exception $ex) {
+	        echo("Caught Exception: " . $ex->getMessage() . "\n");
+	        echo("Response Status Code: " . $ex->getStatusCode() . "\n");
+	        echo("Error Code: " . $ex->getErrorCode() . "\n");
+	        echo("Error Type: " . $ex->getErrorType() . "\n");
+	        echo("Request ID: " . $ex->getRequestId() . "\n");
+	        echo("XML: " . $ex->getXML() . "\n");
+	        echo("ResponseHeaderMetadata: " . $ex->getResponseHeaderMetadata() . "\n");
+	     }
 	}
-	
-	
 	
 	function listInboundShipments($accountId){
 		$platform = $this->getAccountPlatform($accountId) ;
@@ -405,6 +650,8 @@ class AmazonInbound {
 					
 				$this->_doSaveInboundShipmentItems($item1) ;
 			}
+			
+			$this->createInboundShipment($accountId,$itemIdentifier,$item,$skuMembers) ;
 		}
 	}
 	
@@ -540,6 +787,17 @@ class AmazonInbound {
 	}
 	
 	function _doSaveInboundShipments($item){
+		$utils  = ClassRegistry::init("Utils") ;
+		
+		if(isset($item['planId'])){
+			$plan = $utils->getObject("select * from sc_fba_inbound_local_plan where account_id = '{@#accountId#}' and plan_id = '{@#planId#}' ") ;
+			if(!empty($plan)){
+				$item['shipmentType'] = $plan['SHIPMENT_TYPE'] ;
+				$item['isPartnered'] = $plan['IS_PARTNERED'] ;
+				$item['carrierName'] = $plan['CARRIER_NAME'] ;
+			}
+		}
+		
 		$existSql = "select * from sc_fba_inbound_plan where account_id = '{@#accountId#}' and shipment_id = '{@#shipmentId#}' " ;
 		
 		$insertSql="  INSERT INTO sc_fba_inbound_plan 
@@ -553,13 +811,16 @@ class AmazonInbound {
 							NAME, 
 							ADDRESS_LINE1, 
 							ADDRESS_LINE2, 
-							DISTRICT_OR_COUNTRY, 
+							DISTRICT_OR_COUNTY, 
 							CITY, 
 							STATE_OR_PROVINCE_CODE, 
 							COUNTRY_CODE, 
 							POSTAL_CODE, 
 							CREATE_DATE,
-							PLAN_ID
+							PLAN_ID,
+							SHIPMENT_TYPE,
+							IS_PARTNERED,
+							CARRIER_NAME
 							)
 							VALUES
 							('{@#accountId#}', 
@@ -578,7 +839,10 @@ class AmazonInbound {
 							'{@#countryCode#}', 
 							'{@#postalCode#}', 
 							NOW(),
-							'{@#planId#}'
+							'{@#planId#}',
+							'{@#shipmentType#}',
+							'{@#isPartnered#}',
+							'{@#carrierName#}'
 							)" ;
 	
 		$updateSql = "UPDATE sc_fba_inbound_plan 
@@ -591,17 +855,17 @@ class AmazonInbound {
 					NAME = '{@#name#}' , 
 					ADDRESS_LINE1 = '{@#addressLine1#}' , 
 					ADDRESS_LINE2 = '{@#addressLine2#}' , 
-					DISTRICT_OR_COUNTRY = '{@#districtOrCounty#}' , 
+					DISTRICT_OR_COUNTY = '{@#districtOrCounty#}' , 
 					CITY = '{@#city#}' , 
 					STATE_OR_PROVINCE_CODE = '{@#stateOrProvinceCode#}' , 
 					COUNTRY_CODE = '{@#countryCode#}' , 
 					POSTAL_CODE = '{@#postalCode#}' 
 				WHERE
-				ACCOUNT_ID = '{@#accountId#}' AND 
-				SHIPMENT_ID = '{@#shipmentId#}' 
+					ACCOUNT_ID = '{@#accountId#}' AND 
+					SHIPMENT_ID = '{@#shipmentId#}' 
 				" ;
 
-		$utils  = ClassRegistry::init("Utils") ;
+		
 		
 		$obj = $utils->getObject($existSql , $item) ;
 		if( empty($obj) ){
