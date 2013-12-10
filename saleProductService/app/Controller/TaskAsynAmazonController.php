@@ -814,6 +814,30 @@ class TaskAsynAmazonController extends AppController {
 	
 	}
 	
+	public function createInboundShipment( $accountId,$shipmentId ){
+	
+	
+		$id = "createInboundShipment_".date('U') ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+	
+		$params = $this->requestMap()  ;
+	
+		$amazon = new AmazonInbound(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+	
+		$result = $amazon->createInboundShipment($accountId,$shipmentId)  ;
+		return $result ;
+	
+	}
+	
 	public function updateInboundShipment( $accountId,$shipmentId ){
 	
 	
