@@ -21,6 +21,10 @@ require_once("amazon/FBAInboundServiceMWS/Model/UpdateInboundShipmentResult.php"
 require_once("amazon/FBAInboundServiceMWS/Model/PutTransportContentRequest.php");
 require_once("amazon/FBAInboundServiceMWS/Model/PutTransportContentResult.php");
 
+require_once("amazon/FBAInboundServiceMWS/Model/GetPackageLabelsRequest.php");
+require_once("amazon/FBAInboundServiceMWS/Model/GetPackageLabelsResult.php");
+
+
 require_once("amazon/FBAInboundServiceMWS/Model/Address.php");
 require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentPlanRequestItemList.php");
 require_once("amazon/FBAInboundServiceMWS/Model/InboundShipmentPlanRequestItem.php");
@@ -263,15 +267,63 @@ class AmazonInbound {
 	/**
 	 * 获取label
 	 */
-	function  getPackageLabels(){
+	function  getPackageLabels($accountId,$shipmentId,$pageType,$NumberOfPackages){
+
+		$platform = $this->getAccountPlatform($accountId) ;
+		$System = ClassRegistry::init("System") ;
 		
+		$config = array (
+				'ServiceURL' =>  $platform['AMAZON_INBOUND_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3
+		);
+		
+		$service = new FBAInboundServiceMWS_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION,
+				$config);
+		
+		
+		$request = new FBAInboundServiceMWS_Model_GetPackageLabelsRequest() ;
+		$request->setSellerId( $this->MERCHANT_ID );
+		$request->setShipmentId($shipmentId) ;
+		$request->setPageType($pageType) ;
+		$request->setNumberOfPackages($NumberOfPackages) ;
+
+		try {
+			$response = $service->getPackageLabels($request) ;//CreateInboundShipmentPlan($request);
+		
+			if ($response->isSetGetPackageLabelsResult()) {
+				$result = $response->getGetPackageLabelsResult();
+				$result = $result->getTransportDocument() ;
+				$pdfDocument = $result->getPdfDocument() ;
+				//保存document到数据库
+				$System->exeSql("update sc_fba_inbound_plan
+						set label = '{@#pdfDocument#}'
+					where shipment_id= '{@#shipmentId#}' and account_id = '{@#accountId#}' ",
+						array("shipmentId"=>$shipmentId,"accountId"=>$accountId,'pdfDocument'=>$pdfDocument)) ;
+			}
+		
+		
+		} catch (FBAInboundServiceMWS_Exception $ex) {
+			echo("Caught Exception: " . $ex->getMessage() . "\n");
+			echo("Response Status Code: " . $ex->getStatusCode() . "\n");
+			echo("Error Code: " . $ex->getErrorCode() . "\n");
+			echo("Error Type: " . $ex->getErrorType() . "\n");
+			echo("Request ID: " . $ex->getRequestId() . "\n");
+			echo("XML: " . $ex->getXML() . "\n");
+			echo("ResponseHeaderMetadata: " . $ex->getResponseHeaderMetadata() . "\n");
+		}
 	}
 	
 	/**
 	 * 获取TrackNumber状态
 	 */
 	function getTransportContent(){
-		
+
 	}
 	
 	/**
