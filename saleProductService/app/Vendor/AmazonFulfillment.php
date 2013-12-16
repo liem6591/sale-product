@@ -339,6 +339,17 @@ class AmazonFulfillment {
 		}else{
 			$utils->exeSql($updateSql,$item) ;
 		}
+		
+		$amazonAccount  = ClassRegistry::init("Amazonaccount") ;
+		$amazonAccount->saveAccountProductForFBAByAsyn(array(
+				'ASIN'=>$item['asin'],
+				'SKU'=>$item['sellerSku'],
+				'FC_SKU'=>$item['fnsku'],
+				'accountId'=>$item['accountId'],
+				'FBA_SELLABLE'=>$item['inStockSupplyQuantity'],
+				'fulfillment'=>'AMAZON_NA',
+				'quantity'=>$item['totalSupplyQuantity']
+		),3) ;
 	}
 }
 ?>

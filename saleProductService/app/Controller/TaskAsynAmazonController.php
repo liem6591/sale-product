@@ -171,98 +171,101 @@ class TaskAsynAmazonController extends AppController {
 	}
 	
 	////////////////////////////////////////////
-	public function startAsynAmazonFba($accountId){
-		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
-		$account = $this->Amazonaccount->getAccount($accountId) ;
-		$account = $account[0]['sc_amazon_account'] ;
-		$user    = array("LOGIN_ID"=>"cron") ;
-		$amazon = new Amazon(
-				$account['AWS_ACCESS_KEY_ID'] ,
-				$account['AWS_SECRET_ACCESS_KEY'] ,
-				$account['APPLICATION_NAME'] ,
-				$account['APPLICATION_VERSION'] ,
-				$account['MERCHANT_ID'] ,
-				$account['MARKETPLACE_ID'] ,
-				$account['MERCHANT_IDENTIFIER']
-		) ;
-		if( empty($accountAsyn) ){//未开始获取
-			$request = $amazon->getFBAInventory1($accountId) ;
-			if( !empty($request) ){
-				$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
-			}
-		}else{
-			$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
-			$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
-			$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
-			if(empty($requestReportId)){
-				$request = $amazon->getProductReport1($accountId) ;
-				if( !empty($request) ){
-					$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
-				}
-			}
-		}
-	
-		$this->response->type("json") ;
-		$this->response->body( "success")   ;
-	
-		return $this->response ;
-	}
-	
-	//同步产品信息
-	public function asynAmazonFba($accountId,$_reportId=null){
-		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
-		$account = $this->Amazonaccount->getAccount($accountId) ;
-		$account = $account[0]['sc_amazon_account'] ;
-		$user    = array("LOGIN_ID"=>"cron") ;
-		$amazon = new Amazon(
-				$account['AWS_ACCESS_KEY_ID'] ,
-				$account['AWS_SECRET_ACCESS_KEY'] ,
-				$account['APPLICATION_NAME'] ,
-				$account['APPLICATION_VERSION'] ,
-				$account['MERCHANT_ID'] ,
-				$account['MARKETPLACE_ID'] ,
-				$account['MERCHANT_IDENTIFIER']
-		) ;
-		
-		if( !empty($_reportId) ){
-			$request = $amazon->getFBAInventory3($accountId , $_reportId ) ;
-					//$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_AFN_INVENTORY_DATA_") ;
-
-			$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$_reportId,"reportType"=>"_GET_AFN_INVENTORY_DATA_") , $user) ;
-			$this->response->type("json") ;
-			$this->response->body( "success")   ;
-		
-			return $this->response ;
-		}
-	
-		if( empty($accountAsyn) ){//未开始获取
-		}else{
-			$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
-			$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
-			$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
-			if(empty($requestReportId)){
-				//do nothing
-			}else{
-				if( empty($reportId) ){//获取reportId
-					$request = $amazon->getFBAInventory2($accountId,$requestReportId) ;
+	/**
+	 * 
+			public function startAsynAmazonFba($accountId){
+				$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
+				$account = $this->Amazonaccount->getAccount($accountId) ;
+				$account = $account[0]['sc_amazon_account'] ;
+				$user    = array("LOGIN_ID"=>"cron") ;
+				$amazon = new Amazon(
+						$account['AWS_ACCESS_KEY_ID'] ,
+						$account['AWS_SECRET_ACCESS_KEY'] ,
+						$account['APPLICATION_NAME'] ,
+						$account['APPLICATION_VERSION'] ,
+						$account['MERCHANT_ID'] ,
+						$account['MARKETPLACE_ID'] ,
+						$account['MERCHANT_IDENTIFIER']
+				) ;
+				if( empty($accountAsyn) ){//未开始获取
+					$request = $amazon->getFBAInventory1($accountId) ;
 					if( !empty($request) ){
-						$this->Amazonaccount->updateAccountAsyn2($accountId ,$request , $user) ;
+						$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
 					}
-				}else if(empty($status)){//获取产品数据
-					//$this->Amazonaccount->asynProductStatusStart($accountId , "_GET_AFN_INVENTORY_DATA_") ;
-					$request = $amazon->getFBAInventory3($accountId , $reportId ) ;
-					//$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_AFN_INVENTORY_DATA_") ;
-
-					$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>"_GET_AFN_INVENTORY_DATA_") , $user) ;
+				}else{
+					$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
+					$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
+					$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
+					if(empty($requestReportId)){
+						$request = $amazon->getProductReport1($accountId) ;
+						if( !empty($request) ){
+							$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
+						}
+					}
 				}
+			
+				$this->response->type("json") ;
+				$this->response->body( "success")   ;
+			
+				return $this->response ;
 			}
-		}
-	
-		$this->response->type("json") ;
-		$this->response->body( "success")   ;
-	
-		return $this->response ;
-	}
+			
+			//同步产品信息
+			public function asynAmazonFba($accountId,$_reportId=null){
+				$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
+				$account = $this->Amazonaccount->getAccount($accountId) ;
+				$account = $account[0]['sc_amazon_account'] ;
+				$user    = array("LOGIN_ID"=>"cron") ;
+				$amazon = new Amazon(
+						$account['AWS_ACCESS_KEY_ID'] ,
+						$account['AWS_SECRET_ACCESS_KEY'] ,
+						$account['APPLICATION_NAME'] ,
+						$account['APPLICATION_VERSION'] ,
+						$account['MERCHANT_ID'] ,
+						$account['MARKETPLACE_ID'] ,
+						$account['MERCHANT_IDENTIFIER']
+				) ;
+				
+				if( !empty($_reportId) ){
+					$request = $amazon->getFBAInventory3($accountId , $_reportId ) ;
+							//$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_AFN_INVENTORY_DATA_") ;
+		
+					$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$_reportId,"reportType"=>"_GET_AFN_INVENTORY_DATA_") , $user) ;
+					$this->response->type("json") ;
+					$this->response->body( "success")   ;
+				
+					return $this->response ;
+				}
+			
+				if( empty($accountAsyn) ){//未开始获取
+				}else{
+					$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
+					$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
+					$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
+					if(empty($requestReportId)){
+						//do nothing
+					}else{
+						if( empty($reportId) ){//获取reportId
+							$request = $amazon->getFBAInventory2($accountId,$requestReportId) ;
+							if( !empty($request) ){
+								$this->Amazonaccount->updateAccountAsyn2($accountId ,$request , $user) ;
+							}
+						}else if(empty($status)){//获取产品数据
+							//$this->Amazonaccount->asynProductStatusStart($accountId , "_GET_AFN_INVENTORY_DATA_") ;
+							$request = $amazon->getFBAInventory3($accountId , $reportId ) ;
+							//$this->Amazonaccount->asynProductStatusEnd($accountId  , "_GET_AFN_INVENTORY_DATA_") ;
+		
+							$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>"_GET_AFN_INVENTORY_DATA_") , $user) ;
+						}
+					}
+				}
+			
+				$this->response->type("json") ;
+				$this->response->body( "success")   ;
+			
+				return $this->response ;
+			}
+	*/
 	/////////////////////////////////////////////
 	
    /**
