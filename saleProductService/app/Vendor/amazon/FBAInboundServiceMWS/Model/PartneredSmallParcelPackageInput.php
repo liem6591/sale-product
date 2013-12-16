@@ -41,8 +41,8 @@ require_once (VENDOR_PATH.'/amazon/FBAInboundServiceMWS/Model.php');
     public function __construct($data = null)
     {
     $this->_fields = array (
-'Dimensions' => array('FieldValue' => null, 'FieldType' => 'FBAInboundServiceMWS_Model_Dimensions'),
-'Weight' => array('FieldValue' => null, 'FieldType' => 'FBAInboundServiceMWS_Model_Weight'),
+		'Dimensions' => array('FieldValue' => null, 'FieldType' => 'FBAInboundServiceMWS_Model_Dimensions'),
+		'Weight' => array('FieldValue' => null, 'FieldType' => 'FBAInboundServiceMWS_Model_Weight'),
     );
     parent::__construct($data);
     }
