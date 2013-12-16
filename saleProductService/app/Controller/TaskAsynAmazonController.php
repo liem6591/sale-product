@@ -171,8 +171,7 @@ class TaskAsynAmazonController extends AppController {
 	}
 	
 	////////////////////////////////////////////
-	/**
-	 * 
+
 			public function startAsynAmazonFba($accountId){
 				$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_AFN_INVENTORY_DATA_") ;
 				$account = $this->Amazonaccount->getAccount($accountId) ;
@@ -265,7 +264,7 @@ class TaskAsynAmazonController extends AppController {
 			
 				return $this->response ;
 			}
-	*/
+	
 	/////////////////////////////////////////////
 	
    /**
