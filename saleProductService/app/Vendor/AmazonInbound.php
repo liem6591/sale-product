@@ -128,12 +128,14 @@ class AmazonInbound {
 		$InboundShipmentPlanRequestItemList =  new FBAInboundServiceMWS_Model_InboundShipmentPlanRequestItemList() ;
 		
 		//获取计划产品
-		$planSkus = $System->exeSqlWithFormat("select * from sc_fba_inbound_local_plan_items where plan_id='{@#planId#}'",array('planId'=>$planId) );
+		
+		//$planSkus = $System->exeSqlWithFormat("select * from sc_fba_inbound_local_plan_items where plan_id='{@#planId#}'",array('planId'=>$planId) );
+		$planSkus = $System->exeSqlWithFormat("sql_warehouse_box_products_byInId",array('inId'=>$plan['inId']) );
 		
 		$array = array();
 		foreach( $planSkus as $sku ){
 			$InboundShipmentPlanRequestItem = new FBAInboundServiceMWS_Model_InboundShipmentPlanRequestItem() ;
-			$InboundShipmentPlanRequestItem->setSellerSKU( $sku['SKU'] ) ;
+			$InboundShipmentPlanRequestItem->setSellerSKU( $sku['LISTING_SKU'] ) ;
 			$InboundShipmentPlanRequestItem->setQuantity($sku['QUANTITY']) ;
 			$array[] = $InboundShipmentPlanRequestItem ;
 		}

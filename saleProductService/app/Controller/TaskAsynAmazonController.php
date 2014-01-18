@@ -864,7 +864,7 @@ class TaskAsynAmazonController extends AppController {
 	public function updateInboundShipment( $accountId,$shipmentId ){
 	
 	
-		$id = "createInboundShipmentPlan_".date('U') ;
+		$id = "updateInboundShipment_".date('U') ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
 	
@@ -886,7 +886,7 @@ class TaskAsynAmazonController extends AppController {
 	}
 	
 	public function getPackageLabels( $accountId,$shipmentId, $pageType, $NumberOfPackages ){
-		$id = "createInboundShipmentPlan_".date('U') ;
+		$id = "getPackageLabels_".date('U') ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
 	
@@ -909,7 +909,7 @@ class TaskAsynAmazonController extends AppController {
 	public function putTransportContent( $accountId,$shipmentId ){
 	
 	
-		$id = "createInboundShipmentPlan_".date('U') ;
+		$id = "putTransportContent_".date('U') ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
 	

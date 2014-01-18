@@ -11,6 +11,8 @@ class AmazonFeedProcess extends AppModel {
 			$this->_process_GET_AFN_INVENTORY_DATA_($reportType, $productItem, $HeadArray, $accountId) ;
 		}else if( !empty( $reportType ) && $reportType == '_GET_FLAT_FILE_ORDERS_DATA_' ){
 			$this->_process_GET_FLAT_FILE_ORDERS_DATA_($reportType, $productItem, $HeadArray, $accountId) ;
+		}else if( !empty( $reportType ) && $reportType == '_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_' ){
+			$this->_process_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_($reportType, $productItem, $HeadArray, $accountId) ;
 		}
 	}
 	
@@ -131,6 +133,13 @@ class AmazonFeedProcess extends AppModel {
 					'quantity'=>$quantity
 			),3) ;
 		}
+	}
+	
+	function _process_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_( $reportType,$productItem ,$HeadArray,$accountId ){
+		debug($reportType) ;
+		debug($productItem) ;
+		debug($HeadArray) ;
+		debug($accountId) ;
 	}
 
 }

@@ -35,8 +35,128 @@ App::uses('Controller', 'Controller');
  */
 class AppController extends Controller {
 	var $components = array('Session','Mysecurity') ;//'Acl','Auth',
-	var $users = array("User") ;
 	public $browser = null ;
+	
+
+	public $helpers = array (
+			'Html',
+			'Form'
+	); //,'Ajax','Javascript
+	
+	var $uses = array("User",'Amazonaccount','Warning','Log','OrderService');
+	
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+	public function getFeedSubmissionResult($accountId,$feedSubmissionId){
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+	
+		$amazon->getFeedSubmissionResult($accountId,$feedSubmissionId) ;//'5628762486'
+	
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
+	
+	public function getFeedReport1($accountId,$reportType){
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+	
+		$params = $this->request->data  ;
+	
+		$request = $amazon->getFeedReport1($accountId,$reportType,$params) ;
+		if( !empty($request) ){
+			$user =  $this->getCookUser() ;
+			$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
+		}
+	
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
+	
+	public function getFeedReport2($accountId,$reportType,$reportId=null){
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,$reportType) ;
+	
+		$account = $account[0]['sc_amazon_account'] ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		if(empty($reportId))
+			$reportId = $accountAsyn[0]['sc_amazon_account_asyn']['REPORT_REQUEST_ID'] ;
+	
+		$request = $amazon->getFeedReport2($accountId,$reportType,$reportId) ;
+		if( !empty($request) ){
+			$user =  $this->getCookUser() ;
+			$this->Amazonaccount->updateAccountAsyn2($accountId ,$request , $user) ;
+				
+			debug($request) ;
+		}
+	
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
+	
+	public function getFeedReport3($accountId,$reportType,$reportId=null){
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,$reportType) ;
+		if(empty($reportId))
+			$reportId = $accountAsyn[0]['sc_amazon_account_asyn']['REPORT_ID'] ;
+	
+		$this->Amazonaccount->asynProductStatusStart($accountId , $reportType) ;
+		$request = $amazon->getFeedReport3($accountId,$reportType , $reportId ) ;
+		$this->Amazonaccount->asynProductStatusEnd($accountId , $reportType) ;
+	
+		//if( !empty($request) ){
+		$user =  $this->getCookUser() ;
+		$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>$reportType) , $user) ;
+		//}
+		debug($request) ;
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
 	
 	function beforeFilter(){
 		ob_start() ;
