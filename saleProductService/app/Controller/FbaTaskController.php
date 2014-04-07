@@ -48,7 +48,7 @@ class FbaTaskController extends AppController {
 				$REPORT_REQUEST_ID =  $report['REPORT_REQUEST_ID'] ;
 				
 				if( empty( $REPORT_ID ) ){
-					$this->getFeedReport2($accountId, $reportType,$REPORT_ID) ;
+					$this->getFeedReport2($accountId, $reportType,$REPORT_REQUEST_ID) ;
 				}else{
 					$this->getFeedReport3($accountId, $REPORT_ID) ;
 				}

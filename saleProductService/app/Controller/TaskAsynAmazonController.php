@@ -12,6 +12,7 @@ App :: import('Vendor', 'AmazonOrder');
 App :: import('Vendor', 'AmazonFulfillment');
 App :: import('Vendor', 'AmazonRecommendations');
 App :: import('Vendor', 'AmazonInbound');
+App :: import('Vendor', 'AmazonProducts');
 
 class TaskAsynAmazonController extends AppController {
 	
@@ -1064,4 +1065,25 @@ class TaskAsynAmazonController extends AppController {
 	
 		return $this->response ;
 	}
+	
+	/**
+	 * 获取FBA最低价
+	 */
+	public function getLowestOfferListingsForASIN($accountId){
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$amazon = new AmazonProducts(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		
+		$amazon->GetLowestOfferListingsForASIN($accountId) ;
+	}
+	
+	
 }
