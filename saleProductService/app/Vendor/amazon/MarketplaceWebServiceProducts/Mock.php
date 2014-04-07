@@ -18,7 +18,7 @@
 /**
  *  @see MarketplaceWebServiceProducts_Interface
  */
-require_once ('MarketplaceWebServiceProducts/Interface.php'); 
+require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Interface.php'); 
 
 /**
  * This is the Products API section of the Marketplace Web Service.
@@ -43,7 +43,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getMatchingProduct($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetMatchingProductResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetMatchingProductResponse.php');
         return MarketplaceWebServiceProducts_Model_GetMatchingProductResponse::fromXML($this->_invoke('GetMatchingProduct'));
     }
 
@@ -63,7 +63,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getLowestOfferListingsForASIN($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForASINResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForASINResponse.php');
         return MarketplaceWebServiceProducts_Model_GetLowestOfferListingsForASINResponse::fromXML($this->_invoke('GetLowestOfferListingsForASIN'));
     }
 
@@ -84,7 +84,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getServiceStatus($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetServiceStatusResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetServiceStatusResponse.php');
         return MarketplaceWebServiceProducts_Model_GetServiceStatusResponse::fromXML($this->_invoke('GetServiceStatus'));
     }
 
@@ -104,7 +104,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getMatchingProductForId($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetMatchingProductForIdResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetMatchingProductForIdResponse.php');
         return MarketplaceWebServiceProducts_Model_GetMatchingProductForIdResponse::fromXML($this->_invoke('GetMatchingProductForId'));
     }
 
@@ -124,7 +124,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getMyPriceForSKU($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetMyPriceForSKUResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetMyPriceForSKUResponse.php');
         return MarketplaceWebServiceProducts_Model_GetMyPriceForSKUResponse::fromXML($this->_invoke('GetMyPriceForSKU'));
     }
 
@@ -144,7 +144,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function listMatchingProducts($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/ListMatchingProductsResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/ListMatchingProductsResponse.php');
         return MarketplaceWebServiceProducts_Model_ListMatchingProductsResponse::fromXML($this->_invoke('ListMatchingProducts'));
     }
 
@@ -164,7 +164,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getCompetitivePricingForSKU($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetCompetitivePricingForSKUResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetCompetitivePricingForSKUResponse.php');
         return MarketplaceWebServiceProducts_Model_GetCompetitivePricingForSKUResponse::fromXML($this->_invoke('GetCompetitivePricingForSKU'));
     }
 
@@ -184,7 +184,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getCompetitivePricingForASIN($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetCompetitivePricingForASINResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetCompetitivePricingForASINResponse.php');
         return MarketplaceWebServiceProducts_Model_GetCompetitivePricingForASINResponse::fromXML($this->_invoke('GetCompetitivePricingForASIN'));
     }
 
@@ -204,7 +204,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getProductCategoriesForSKU($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetProductCategoriesForSKUResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetProductCategoriesForSKUResponse.php');
         return MarketplaceWebServiceProducts_Model_GetProductCategoriesForSKUResponse::fromXML($this->_invoke('GetProductCategoriesForSKU'));
     }
 
@@ -224,7 +224,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getMyPriceForASIN($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetMyPriceForASINResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetMyPriceForASINResponse.php');
         return MarketplaceWebServiceProducts_Model_GetMyPriceForASINResponse::fromXML($this->_invoke('GetMyPriceForASIN'));
     }
 
@@ -244,7 +244,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getLowestOfferListingsForSKU($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForSKUResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForSKUResponse.php');
         return MarketplaceWebServiceProducts_Model_GetLowestOfferListingsForSKUResponse::fromXML($this->_invoke('GetLowestOfferListingsForSKU'));
     }
 
@@ -264,7 +264,7 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
      */
     public function getProductCategoriesForASIN($request) 
     {
-        require_once ('MarketplaceWebServiceProducts/Model/GetProductCategoriesForASINResponse.php');
+        require_once (VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Model/GetProductCategoriesForASINResponse.php');
         return MarketplaceWebServiceProducts_Model_GetProductCategoriesForASINResponse::fromXML($this->_invoke('GetProductCategoriesForASIN'));
     }
 
@@ -272,6 +272,6 @@ class  MarketplaceWebServiceProducts_Mock implements MarketplaceWebServiceProduc
 
     private function _invoke($actionName)
     {
-        return $xml = file_get_contents('MarketplaceWebServiceProducts/Mock/' . $actionName . 'Response.xml', /** search include path */ TRUE);
+        return $xml = file_get_contents(VENDOR_PATH.'/amazon/MarketplaceWebServiceProducts/Mock/' . $actionName . 'Response.xml', /** search include path */ TRUE);
     }
 }
