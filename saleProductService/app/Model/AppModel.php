@@ -243,7 +243,6 @@ class AppModel extends Model {
 		public function exeSqlWithFormat($sql , $query){
 			$sql = $this->getDbSql($sql) ;
 			$sql = $this->getSql($sql,$query) ;
-			//	echo $sql ;
 			$records = $this->query($sql) ;
 			$items = array() ;
 			if(!empty($records)){
@@ -349,10 +348,20 @@ class AppModel extends Model {
 		    							}
 	    							}else  if( isset($query[$key]) &&( $query[$key]=='0' || !empty($query[$key]) 
 	    								|| !empty($defaultValue) || $defaultValue == '0' ) ){
+	    								$kValue = "" ;
+	    								//判断是否为in子句
+	    								if( strpos($key, '!in') >= 0 ){
+	    									//为in子句
+	    									$key = str_replace("!in", "", $key) ;
+	    									$kValue = $query[$key] ;
+	    									//格式化$kValue,防止sql特殊字符
+	    									$kValue = str_replace("'","\'",$kValue);
+	    								}else{
+	    									$kValue = $query[$key] ;
+	    									//格式化$kValue,防止sql特殊字符
+	    									$kValue = str_replace("'","\'",$kValue);
+	    								}
 	    								
-	    								$kValue = $query[$key] ;
-	    								//格式化$kValue,防止sql特殊字符
-	    								$kValue = str_replace("'","\'",$kValue);
 	    								//if( $this->is_utf8($kValue) ){
 	    									//
 	    								//}else{
