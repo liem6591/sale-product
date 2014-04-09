@@ -57,7 +57,6 @@ class TaskAsynAmazonController extends AppController {
 		//询价状态  最低价 FBM TARGET_PRICE ， FBA最低价
 		$sql = "
 		      select t1.* from (  
-		         
 		          select t.*,
 						(SELECT COUNT(*) FROM sc_sale_competition_details 
 							WHERE sc_sale_competition_details.asin = t.asin AND sc_sale_competition_details.type LIKE 'F%'
@@ -170,6 +169,90 @@ class TaskAsynAmazonController extends AppController {
 
 		return $this->response ;
 	}
+	
+	/**
+	 * 同步流量数据
+	 */
+public function startAsynFlowDaily($accountId){
+		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$user    = array("LOGIN_ID"=>"cron") ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+		if( empty($accountAsyn) ){//未开始获取
+			$request = $amazon->getFeedReport1($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_")  ;
+			if( !empty($request) ){
+				$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
+			}
+		}else{
+			$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
+			$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
+			$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
+			if(empty($requestReportId)){
+				$request = $amazon->getFeedReport1($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") ;
+				if( !empty($request) ){
+					$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
+				}
+			}
+		}
+	
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
+	
+	public function asynFlowDaily($accountId){
+		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") ;
+		$account = $this->Amazonaccount->getAccount($accountId) ;
+		$account = $account[0]['sc_amazon_account'] ;
+		$user    = array("LOGIN_ID"=>"cron") ;
+		$amazon = new Amazon(
+				$account['AWS_ACCESS_KEY_ID'] ,
+				$account['AWS_SECRET_ACCESS_KEY'] ,
+				$account['APPLICATION_NAME'] ,
+				$account['APPLICATION_VERSION'] ,
+				$account['MERCHANT_ID'] ,
+				$account['MARKETPLACE_ID'] ,
+				$account['MERCHANT_IDENTIFIER']
+		) ;
+	
+		if( empty($accountAsyn) ){//未开始获取
+		}else{
+			$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
+			$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
+			$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
+			if(empty($requestReportId)){
+				//do nothing
+			}else{
+				if( empty($reportId) ){//获取reportId
+					$request = $amazon->getFeedReport2($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_",$requestReportId) ;
+					print_r($request) ;
+					if( !empty($request) ){
+						$this->Amazonaccount->updateAccountAsyn2($accountId ,$request , $user) ;
+					}
+				}else if(empty($status)){//获取产品数据
+					$request = $amazon->getFeedReport3($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_" , $reportId ) ;
+	
+					$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>"_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") , $user) ;
+				}
+			}
+		}
+	
+		$this->response->type("json") ;
+		$this->response->body( "success")   ;
+	
+		return $this->response ;
+	}
+	
 	
 	////////////////////////////////////////////
 

@@ -13,7 +13,13 @@ class AmazonFeedProcess extends AppModel {
 			$this->_process_GET_FLAT_FILE_ORDERS_DATA_($reportType, $productItem, $HeadArray, $accountId) ;
 		}else if( !empty( $reportType ) && $reportType == '_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_' ){
 			$this->_process_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_($reportType, $productItem, $HeadArray, $accountId) ;
+		}else if( !empty( $reportType ) && $reportType == '_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_' ){
+			$this->_process_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_($reportType, $productItem, $HeadArray, $accountId) ;
 		}
+	}
+	
+	function _process_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_( $reportType,$productItem ,$HeadArray,$accountId ){
+		debug( $productItem ) ;
 	}
 	
 	/**

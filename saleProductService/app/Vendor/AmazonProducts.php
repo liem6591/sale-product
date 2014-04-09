@@ -178,8 +178,8 @@ class AmazonProducts {
 					$sql = "update sc_amazon_account_product set lowest_price = '{@#lowestPrice#}' where asin ='{@#asin#}'" ;
 					$SqlUtils->exeSql($sql,array('lowestPrice'=>$mp,'asin'=>$asin)) ;
 				}else{
-					$sql = "update sc_amazon_account_product set lowest_price = null where asin ='{@#asin#}'" ;
-					$SqlUtils->exeSql($sql,array('lowestPrice'=>$mp,'asin'=>$asin)) ;
+					//$sql = "update sc_amazon_account_product set lowest_price = null where asin ='{@#asin#}'" ;
+					//$SqlUtils->exeSql($sql,array('lowestPrice'=>$mp,'asin'=>$asin)) ;
 				}
 				
 				if( $mfp != 100000 ){
@@ -187,8 +187,8 @@ class AmazonProducts {
 					$sql = "update sc_amazon_account_product set lowest_fba_price = '{@#lowestPrice#}' where asin ='{@#asin#}'" ;
 					$SqlUtils->exeSql($sql,array('lowestPrice'=>$mfp,'asin'=>$asin)) ;
 				}else{
-					$sql = "update sc_amazon_account_product set lowest_fba_price = null where asin ='{@#asin#}'" ;
-					$SqlUtils->exeSql($sql,array('lowestPrice'=>$mfp,'asin'=>$asin)) ;
+					//$sql = "update sc_amazon_account_product set lowest_fba_price = null where asin ='{@#asin#}'" ;
+					//$SqlUtils->exeSql($sql,array('lowestPrice'=>$mfp,'asin'=>$asin)) ;
 				}
 				
 			}
