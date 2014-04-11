@@ -45,6 +45,77 @@ class Amazon {
 		return $System->getAccountPlatformConfig($accountId ) ;
 	}
 	
+	public function getFeedReport1ForFlow($accountId ,$reportType,$querys =array()){
+		$platform = $this->getAccountPlatform($accountId) ;
+	
+		$config = array (
+				'ServiceURL' => $platform['AMAZON_ROOT_SERVICE_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3,
+		);
+	
+		$service = new MarketplaceWebService_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$config,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION );
+	
+		$marketplaceIdArray = array("Id" => array($this->MARKETPLACE_ID));
+	
+	
+		$StartDate = new DateTime( date("Y-m-d") , new DateTimeZone('UTC')) ;
+		$StartDate->modify( '-48 hour' );
+		$EndDate = new DateTime( date("Y-m-d") , new DateTimeZone('UTC')) ;
+		$EndDate->modify( '-24 hour' );
+		
+		$parameters = array (
+				'Merchant' => $this->MERCHANT_ID,
+				'MarketplaceIdList' => $marketplaceIdArray,
+				'ReportType' => $reportType,
+				'ReportOptions' => 'ShowSalesChannel=true',
+				'StartDate'=>$StartDate,
+				'EndDate'=>$EndDate
+		);
+	
+		$request = new MarketplaceWebService_Model_RequestReportRequest($parameters);
+	
+		if(!empty( $querys['LastUpdatedAfter']  )){
+			//$request->setLastUpdatedAfter(new DateTime(  $querys['LastUpdatedAfter']  , new DateTimeZone('UTC')));
+		}
+	
+		$return = null ;
+	
+		try {
+			$response = $service->requestReport($request);
+	
+			if ($response->isSetRequestReportResult()) {
+				$requestReportResult = $response->getRequestReportResult();
+	
+				if ($requestReportResult->isSetReportRequestInfo()) {
+					$reportRequestInfo = $requestReportResult->getReportRequestInfo();
+					$reportRequestId = "" ;
+					$reportType = "" ;
+					if ($reportRequestInfo->isSetReportRequestId()) {
+						$reportRequestId =  $reportRequestInfo->getReportRequestId() ;
+					}
+					if ($reportRequestInfo->isSetReportType()) {
+						$reportType =  $reportRequestInfo->getReportType() ;
+					}
+	
+					if( $reportRequestId != "" ){
+						$return = array('reportRequestId'=>$reportRequestId,'reportType'=>$reportType) ;
+					}
+				}
+			}
+		} catch (MarketplaceWebService_Exception $ex) {
+		}
+	
+		return $return ;
+	
+	}
+	
 	public function getFeedReport1($accountId ,$reportType,$querys =array()){
 		$platform = $this->getAccountPlatform($accountId) ;
 		

@@ -1079,10 +1079,10 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
   		$log  = ClassRegistry::init("Log") ;
   		
   		$amazonFeedProcess  = ClassRegistry::init("AmazonFeedProcess") ;
-  
+  		debug(111111);
   		while(!feof($handle)){
   			$row =  fgets($handle);
-  		//	debug($row) ;
+  			debug($row) ;
   			if($HeadArray == null){
   				$HeadArray = split( "\t" ,$row  ) ;
   			}else{
@@ -1091,7 +1091,6 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
   				foreach($HeadArray as  $k => $v ){
   					$productItem[trim($v)] = $array[$k] ;
   				} ;
-  				
   				//callback
   				$amazonFeedProcess->process( $reportType,$productItem ,$HeadArray,$accountId);
   				

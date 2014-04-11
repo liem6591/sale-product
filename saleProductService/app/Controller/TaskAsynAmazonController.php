@@ -188,7 +188,8 @@ public function startAsynFlowDaily($accountId){
 				$account['MERCHANT_IDENTIFIER']
 		) ;
 		if( empty($accountAsyn) ){//未开始获取
-			$request = $amazon->getFeedReport1($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_")  ;
+			$request = $amazon->getFeedReport1ForFlow($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_")  ;
+			debug($request);
 			if( !empty($request) ){
 				$this->Amazonaccount->saveAccountAsyn($accountId ,$request , $user) ;
 			}
@@ -212,6 +213,7 @@ public function startAsynFlowDaily($accountId){
 	
 	public function asynFlowDaily($accountId){
 		$accountAsyn = $this->Amazonaccount->getAccountAsyn($accountId,"_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") ;
+		debug($accountAsyn) ;
 		$account = $this->Amazonaccount->getAccount($accountId) ;
 		$account = $account[0]['sc_amazon_account'] ;
 		$user    = array("LOGIN_ID"=>"cron") ;
@@ -229,9 +231,12 @@ public function startAsynFlowDaily($accountId){
 		}else{
 			$requestReportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_REQUEST_ID"] ;
 			$reportId = $accountAsyn[0]["sc_amazon_account_asyn"]["REPORT_ID"] ;
+			debug($requestReportId);
+			debug($reportId);
 			$status = $accountAsyn[0]["sc_amazon_account_asyn"]["STATUS"] ;
 			if(empty($requestReportId)){
 				//do nothing
+				debug("do nothing");
 			}else{
 				if( empty($reportId) ){//获取reportId
 					$request = $amazon->getFeedReport2($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_",$requestReportId) ;
@@ -241,16 +246,16 @@ public function startAsynFlowDaily($accountId){
 					}
 				}else if(empty($status)){//获取产品数据
 					$request = $amazon->getFeedReport3($accountId, "_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_" , $reportId ) ;
-	
+					debug($request);
 					$this->Amazonaccount->updateAccountAsyn3($accountId ,array("reportId"=>$reportId,"reportType"=>"_GET_PADS_PRODUCT_PERFORMANCE_OVER_TIME_DAILY_DATA_TSV_") , $user) ;
 				}
 			}
 		}
 	
-		$this->response->type("json") ;
-		$this->response->body( "success")   ;
+		//$this->response->type("json") ;
+		//$this->response->body( "success")   ;
 	
-		return $this->response ;
+		//return $this->response ;
 	}
 	
 	

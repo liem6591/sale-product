@@ -3,6 +3,7 @@ require_once("amazon/MWSRecommendationsSectionService/Client.php");
 require_once("amazon/MWSRecommendationsSectionService/Model/ListRecommendationsRequest.php");
 require_once("amazon/MWSRecommendationsSectionService/Model/ListRecommendationsByNextTokenRequest.php");
 require_once("amazon/MWSRecommendationsSectionService/Model/ListRecommendationsResult.php");
+require_once("amazon/MWSRecommendationsSectionService/Model/Price.php");
 
 require_once("amazon/FBAInventoryServiceMWS/Exception.php");
 
@@ -65,12 +66,22 @@ class AmazonRecommendations {
 		$request = new MWSRecommendationsSectionService_Model_ListRecommendationsRequest();
 		$request->setSellerId( $this->MERCHANT_ID );
 		$request->setMarketplaceId( $this->MARKETPLACE_ID );
+		/*
+		 * 
+		 Inventory
+		Selection
+		Pricing
+		Fulfillment
+		ListingQuality
+		*/
+		//$request->setRecommendationCategory("Pricing") ;
 		
 		
 		try {
 			$response = $service->ListRecommendations($request);
 			if ($response->isSetListRecommendationsResult()) {
 				$result = $response->getListRecommendationsResult();
+				//print_r($result) ;
 				//删除所有的推荐
 				$this->_doDelete(array('accountId'=>$accountId)) ;
 				$skus = $this->_doListRecommendationsResponse($result,$accountId  ) ;
@@ -144,69 +155,362 @@ class AmazonRecommendations {
 
 	
 	function _doListRecommendationsResponse($result,$accountId ){
-				$skus = array();
-				$inventorySupplyList = $result->getInventoryRecommendations();
-				//debug($inventorySupplyList) ;
-				
-				//$memberList = $inventorySupplyList->getmember();
-				foreach ($inventorySupplyList as $member) {
-					/*
-					 *  'LastUpdated' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'ItemIdentifier' => array('FieldValue' => null, 'FieldType' => 'MWSRecommendationsSectionService_Model_ProductIdentifier'),
-            'ItemName' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'FulfillmentChannel' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'SalesForTheLast14Days' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'SalesForTheLast30Days' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'AvailableQuantity' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'DaysUntilStockRunsOut' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'InboundQuantity' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'RecommendedInboundQuantity' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'DaysOutOfStockLast30Days' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'LostSalesInLast30Days' => array('FieldValue' => null, 'FieldType' => 'int'),
-            'RecommendationId' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'RecommendationReason' => array('FieldValue' => null, 'FieldType' => 'string'),
-             'Asin' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'Sku' => array('FieldValue' => null, 'FieldType' => 'string'),
-            'Upc' => array('FieldValue' => null, 'FieldType' => 'string'),
-            */
-					$item = array() ;
-					$item['accountId'] = $accountId ;
-					$item['lastUpdated'] = $member->getLastUpdated() ;
-					$itemIdentifier =  $member->getItemIdentifier() ;
-					$item['asin'] = $itemIdentifier->getAsin() ;
-					$item['sku'] = $itemIdentifier->getSku() ;
-					$item['upc'] = $itemIdentifier->getUpc() ;
-					$item['itemName'] = $member->getItemName() ;
-					$item['fulfillmentChannel'] = $member->getFulfillmentChannel() ;
-					$item['salesForTheLast14Days'] = $member->getSalesForTheLast14Days() ;
-					$item['salesForTheLast30Days'] = $member->getSalesForTheLast30Days() ;
-					$item['availableQuantity'] = $member->getAvailableQuantity() ;
-					$item['daysUntilStockRunsOut'] = $member->getDaysUntilStockRunsOut() ;
-					$item['inboundQuantity'] = $member->getInboundQuantity() ;
-					$item['recommendedInboundQuantity'] = $member->getRecommendedInboundQuantity() ;
-					$item['daysOutOfStockLast30Days'] = $member->getDaysOutOfStockLast30Days() ;
-					$item['lostSalesInLast30Days'] = $member->getLostSalesInLast30Days() ;
-					$item['recommendationId'] = $member->getRecommendationId() ;
-					$item['recommendationReason'] = $member->getRecommendationReason() ;
-					debug($item) ;
-					$this->_doSave($item) ;
-				}
-	
+			$skus = array();
+			
+			//print_r($result);
+			$this->_doPricingRecommendations($result, $accountId) ;
+			$this->_doInventoryRecommendations($result, $accountId) ;
+			$this->_doSelectionRecommendations($result, $accountId) ;
+			$this->_doFulfillmentRecommendations($result, $accountId) ;
+			$this->_doListingQualityRecommendations($result, $accountId) ;
 			if ($result->isSetNextToken())
 			{
 				$nextToken = $result->getNextToken() ;
+				echo "<br>************nextToken start*******************<br>" ;
+				debug($nextToken );
 				$skus_ = $this->listRecommendationsByNextToken($nextToken, $accountId) ;
+
 			}
 			return $skus ;
 	}
 	
+	function _doListingQualityRecommendations($result,$accountId){
+		$inventorySupplyList = $result->getListingQualityRecommendations();
+		echo "<br>listingquality count::".count($inventorySupplyList)."<br>" ;
+		foreach ($inventorySupplyList as $member) {
+			$item = array() ;
+
+			$item['ACCOUNT_ID'] = $accountId ;
+			$itemIdentifier =  $member->getItemIdentifier() ;
+			$item['ASIN'] = $itemIdentifier->getAsin() ;
+			$item['SKU'] = $itemIdentifier->getSku() ;
+			$item['UPC'] = $itemIdentifier->getUpc() ;
+			$item['ITEM_NAME'] =$member->getItemName() ;
+			
+			$item['QUALITY_SET'] = $member->getQualitySet() ;
+			$item['DEFECT_GROUP'] = $member->getDefectGroup() ;
+			$item['DEFECT_ATTRIBUTE'] = $member->getDefectAttribute() ; 
+			
+			$item['RECOMMENDATION_ID'] = $member->getRecommendationId()  ;
+			$item['RECOMMENDATION_REASON'] = $member->getRecommendationReason()  ;
+			
+			$this->_doSaveListingQuality($item) ;
+		}
+	}
+	
+	function _doFulfillmentRecommendations($result,$accountId){
+		$inventorySupplyList = $result->getFulfillmentRecommendations();
+		echo "<br>fulfillment count::".count($inventorySupplyList)."<br>" ;
+		foreach ($inventorySupplyList as $member) {
+			$item = array() ;
+
+			$item['ACCOUNT_ID'] = $accountId ;
+			$itemIdentifier =  $member->getItemIdentifier() ;
+			$item['ASIN'] = $itemIdentifier->getAsin() ;
+			$item['SKU'] = $itemIdentifier->getSku() ;
+			$item['UPC'] = $itemIdentifier->getUpc() ;
+			$item['LAST_UPDATED'] =  $member->getLastUpdated() ;
+			$item['ITEM_NAME'] =$member->getItemName() ;
+			
+			$item['BRAND_NAME'] = $member->getBrandName() ;
+			$item['PRODUCT_CATEGORY'] = $member->getProductCategory() ;
+			$item['SALES_RANK'] = $member->getSalesRank() ; 
+			$price =  $member->getBuyboxPrice() ;
+			if(!empty($price))$item['BUYBOX_PRICE'] =  $price->getAmount() ;
+			$item['NUMBER_OF_OFFERS'] = $member->getNumberOfOffers()  ;
+			$item['AVERAGE_CUSTOMER_REVIEW'] = $member->getAverageCustomerReview()  ;
+			$item['NUMBER_OF_CUSTOMER_REVIEWS'] = $member->getNumberOfCustomerReviews()  ;
+			$item['NUMBER_OF_OFFERS_FULFILLED_BY_AMAZON'] = $member->getNumberOfOffersFulfilledByAmazon()  ;
+			$item['ITEM_DIMENSIONS'] = $member->getItemDimensions()  ;
+			
+			$item['RECOMMENDATION_ID'] = $member->getRecommendationId()  ;
+			$item['RECOMMENDATION_REASON'] = $member->getRecommendationReason()  ;
+			
+			$this->_doSaveFulfillment($item) ;
+		}
+	}
+	
+	function _doSelectionRecommendations($result,$accountId){
+
+		$inventorySupplyList = $result->getSelectionRecommendations();
+		echo "<br>selection count::".count($inventorySupplyList)."<br>" ;
+		foreach ($inventorySupplyList as $member) {
+			$item = array() ;
+
+			$item['ACCOUNT_ID'] = $accountId ;
+			$itemIdentifier =  $member->getItemIdentifier() ;
+			$item['ASIN'] = $itemIdentifier->getAsin() ;
+			$item['SKU'] = $itemIdentifier->getSku() ;
+			$item['UPC'] = $itemIdentifier->getUpc() ;
+			$item['LAST_UPDATED'] =  $member->getLastUpdated() ;
+			$item['ITEM_NAME'] =$member->getItemName() ;
+			
+			$item['BRAND_NAME'] = $member->getBrandName() ;
+			$item['PRODUCT_CATEGORY'] = $member->getProductCategory() ;
+			$item['SALES_RANK'] = $member->getSalesRank() ; 
+			$price =  $member->getBuyboxPrice() ;
+			if(!empty($price))$item['BUYBOX_PRICE'] =  $price->getAmount() ;
+			$item['NUMBER_OF_OFFERS'] = $member->getNumberOfOffers()  ;
+			$item['AVERAGE_CUSTOMER_REVIEW'] = $member->getAverageCustomerReview()  ;
+			$item['NUMBER_OF_CUSTOMER_REVIEWS'] = $member->getNumberOfCustomerReviews()  ;
+			
+			$item['RECOMMENDATION_ID'] = $member->getRecommendationId()  ;
+			$item['RECOMMENDATION_REASON'] = $member->getRecommendationReason()  ;
+			
+			$this->_doSaveSelection($item) ;
+		}
+	}
+	
+	function _doPricingRecommendations($result,$accountId){
+		$inventorySupplyList = $result->getPricingRecommendations();
+		$index=0 ;
+		echo "<br>pricing count::".count($inventorySupplyList)."<br>" ;
+		foreach ($inventorySupplyList as $member) {
+			$item = array() ;
+			$item['ACCOUNT_ID'] = $accountId ;
+			$itemIdentifier =  $member->getItemIdentifier() ;
+			$item['ASIN'] = $itemIdentifier->getAsin() ;
+			$item['SKU'] = $itemIdentifier->getSku() ;
+			$item['UPC'] = $itemIdentifier->getUpc() ;
+			$item['LAST_UPDATED'] =  $member->getLastUpdated() ;
+			$item['ITEM_NAME'] =$member->getItemName() ;
+			$item['FULFILLMENT_CHANNEL'] = $member->getFulfillmentChannel() ;
+			$price =  $member->getYourPricePlusShipping() ;
+			if(!empty($price))$item['YOUR_PRICE_PLUS_SHIPPING'] = $price->getAmount() ;
+			
+			$price =  $member->getYourPricePlusShipping() ;
+			if(!empty($price))$item['LOWEST_PRICE_PLUS_SHIPPING'] = $price->getAmount() ; 
+
+			$price =  $member->getPriceDifferenceToLowPrice() ;
+			if(!empty($price))$item['PRICE_DIFFERENCE_TO_LOW_PRICE'] = $price->getAmount()  ;
+
+			$price =  $member->getMedianPricePlusShipping() ;
+			if(!empty($price))$item['MEDIAN_PRICE_PLUS_SHIPPING'] = $price->getAmount()  ;
+
+			$price =  $member->getLowestMerchantFulfilledOfferPrice() ;
+			if(!empty($price))$item['LOWEST_MERCHANT_FULFILLED_OFFER_PRICE'] = $price->getAmount()  ;
+
+			$price =  $member->getLowestAmazonFulfilledOfferPrice() ;
+			if(!empty($price))$item['LOWEST_AMAZON_FULFILLED_OFFER_PRICE'] = $price->getAmount()  ;
+			$item['NUMBER_OF_OFFERS'] = $member->getNumberOfOffers()  ;
+			$item['NUMBER_OF_MERCHANT_FULFILLED_OFFERS'] = $member->getNumberOfMerchantFulfilledOffers()  ;
+			$item['NUMBER_OF_AMAZON_FULFILLED_OFFERS'] = $member->getNumberOfAmazonFulfilledOffers()  ;
+			$item['RECOMMENDATION_ID'] = $member->getRecommendationId()  ;
+			$item['RECOMMENDATION_REASON'] = $member->getRecommendationReason()  ;
+			//debug($item) ;
+			$this->_doSavePricing($item) ;
+		}
+	}
+	
+	function _doInventoryRecommendations($result,$accountId){
+		$inventorySupplyList = $result->getInventoryRecommendations();
+		echo "<br>inventory count::".count($inventorySupplyList)."<br>" ;
+		foreach ($inventorySupplyList as $member) {
+			$item = array() ;
+			$item['accountId'] = $accountId ;
+			$item['lastUpdated'] = $member->getLastUpdated() ;
+			$itemIdentifier =  $member->getItemIdentifier() ;
+			$item['asin'] = $itemIdentifier->getAsin() ;
+			$item['sku'] = $itemIdentifier->getSku() ;
+			$item['upc'] = $itemIdentifier->getUpc() ;
+			$item['itemName'] = $member->getItemName() ;
+			$item['fulfillmentChannel'] = $member->getFulfillmentChannel() ;
+			$item['salesForTheLast14Days'] = $member->getSalesForTheLast14Days() ;
+			$item['salesForTheLast30Days'] = $member->getSalesForTheLast30Days() ;
+			$item['availableQuantity'] = $member->getAvailableQuantity() ;
+			$item['daysUntilStockRunsOut'] = $member->getDaysUntilStockRunsOut() ;
+			$item['inboundQuantity'] = $member->getInboundQuantity() ;
+			$item['recommendedInboundQuantity'] = $member->getRecommendedInboundQuantity() ;
+			$item['daysOutOfStockLast30Days'] = $member->getDaysOutOfStockLast30Days() ;
+			$item['lostSalesInLast30Days'] = $member->getLostSalesInLast30Days() ;
+			$item['recommendationId'] = $member->getRecommendationId() ;
+			$item['recommendationReason'] = $member->getRecommendationReason() ;
+			//debug($item) ;
+			$this->_doSaveInventory($item) ;
+		}
+	}
+	
 	function _doDelete($detail){
-		$deleteSql=" delete from sc_amazon_recommendations where ACCOUNT_ID = '{@#accountId#}'  " ;
 		$utils  = ClassRegistry::init("Utils") ;
+		$deleteSql=" delete from sc_amazon_recommendations where ACCOUNT_ID = '{@#accountId#}'  " ;
 		$utils->exeSql($deleteSql,$detail) ;
+		$deleteSql=" delete from sc_amazon_recommendations_fulfillment where ACCOUNT_ID = '{@#accountId#}'  " ;
+		$utils->exeSql($deleteSql,$detail) ;
+		$deleteSql=" delete from sc_amazon_recommendations_listing_quality where ACCOUNT_ID = '{@#accountId#}'  " ;
+		$utils->exeSql($deleteSql,$detail) ;
+		$deleteSql=" delete from sc_amazon_recommendations_pricing where ACCOUNT_ID = '{@#accountId#}'  " ;
+		$utils->exeSql($deleteSql,$detail) ;
+		$deleteSql=" delete from sc_amazon_recommendations_selection where ACCOUNT_ID = '{@#accountId#}'  " ;
+		$utils->exeSql($deleteSql,$detail) ;
+		
+		/*sc_amazon_recommendations_fulfillment
+sc_amazon_recommendations_listing_quality
+sc_amazon_recommendations_pricing
+sc_amazon_recommendations_selection*/
+	}
+	
+	function _doSaveSelection($item){
+		$utils  = ClassRegistry::init("Utils") ;
+		$insertSql="INSERT INTO sc_amazon_recommendations_selection 
+			(ACCOUNT_ID, 
+			ASIN, 
+			SKU, 
+			UPC,
+			LAST_UPDATED, 
+			ITEM_NAME, 
+			BRAND_NAME, 
+			PRODUCT_CATEGORY, 
+			SALES_RANK, 
+			BUYBOX_PRICE, 
+			NUMBER_OF_OFFERS, 
+			AVERAGE_CUSTOMER_REVIEW, 
+			NUMBER_OF_CUSTOMER_REVIEWS, 
+			RECOMMENDATION_ID, 
+			RECOMMENDATION_REASON
+			)
+			VALUES
+			('{@#ACCOUNT_ID#}', 
+			'{@#ASIN#}', 
+			'{@#SKU#}', 
+			'{@#UPC#}', 
+			'{@#LAST_UPDATED#}', 
+			'{@#ITEM_NAME#}', 
+			'{@#BRAND_NAME#}', 
+			'{@#PRODUCT_CATEGORY#}', 
+			'{@#SALES_RANK#}', 
+			'{@#BUYBOX_PRICE#}', 
+			'{@#NUMBER_OF_OFFERS#}', 
+			'{@#AVERAGE_CUSTOMER_REVIEW#}', 
+			'{@#NUMBER_OF_CUSTOMER_REVIEWS#}', 
+			'{@#RECOMMENDATION_ID#}', 
+			'{@#RECOMMENDATION_REASON#}'
+			)" ;
+	
+		$utils->exeSql($insertSql,$item) ;
+	}
+	
+	function _doSaveListingQuality($item){
+		$utils  = ClassRegistry::init("Utils") ;
+		$insertSql=" INSERT INTO sc_amazon_recommendations_listing_quality 
+				(ACCOUNT_ID, 
+				ASIN, 
+				SKU, 
+					UPC, 
+				QUALITY_SET, 
+				DEFECT_GROUP, 
+				DEFECT_ATTRIBUTE, 
+				ITEM_NAME, 
+				RECOMMENDATION_ID, 
+				RECOMMENDATION_REASON
+				)
+				VALUES
+				('{@#ACCOUNT_ID#}', 
+				'{@#ASIN#}', 
+				'{@#SKU#}', 
+			'{@#UPC#}', 
+				'{@#QUALITY_SET#}', 
+				'{@#DEFECT_GROUP#}', 
+				'{@#DEFECT_ATTRIBUTE#}', 
+				'{@#ITEM_NAME#}', 
+				'{@#RECOMMENDATION_ID#}', 
+				'{@#RECOMMENDATION_REASON#}'
+				)" ;
+				
+		$utils->exeSql($insertSql,$item) ;
+	}
+	
+	function _doSaveFulfillment($item){
+		$utils  = ClassRegistry::init("Utils") ;
+		$insertSql=" 
+INSERT INTO sc_amazon_recommendations_fulfillment 
+	(ACCOUNT_ID, 
+	ASIN, 
+	SKU, 
+					UPC, 
+	LAST_UPDATED, 
+	ITEM_NAME, 
+	BRAND_NAME, 
+	PRODUCT_CATEGORY, 
+	SALES_RANK, 
+	BUYBOX_PRICE, 
+	NUMBER_OF_OFFERS, 
+	NUMBER_OF_OFFERS_FULFILLED_BY_AMAZON, 
+	AVERAGE_CUSTOMER_REVIEW, 
+	NUMBER_OF_CUSTOMER_REVIEWS, 
+	ITEM_DIMENSIONS, 
+	RECOMMENDATION_ID, 
+	RECOMMENDATION_REASON
+	)
+	VALUES
+	('{@#ACCOUNT_ID#}', 
+	'{@#ASIN#}', 
+	'{@#SKU#}', 
+			'{@#UPC#}', 
+	'{@#LAST_UPDATED#}', 
+	'{@#ITEM_NAME#}', 
+	'{@#BRAND_NAME#}', 
+	'{@#PRODUCT_CATEGORY#}', 
+	'{@#SALES_RANK#}', 
+	'{@#BUYBOX_PRICE#}', 
+	'{@#NUMBER_OF_OFFERS#}', 
+	'{@#NUMBER_OF_OFFERS_FULFILLED_BY_AMAZON#}', 
+	'{@#AVERAGE_CUSTOMER_REVIEW#}', 
+	'{@#NUMBER_OF_CUSTOMER_REVIEWS#}', 
+	'{@#ITEM_DIMENSIONS#}', 
+	'{@#RECOMMENDATION_ID#}', 
+	'{@#RECOMMENDATION_REASON#}'
+	)" ;
+	
+		$utils->exeSql($insertSql,$item) ;
+	}
+	
+	function _doSavePricing($item){
+		$utils  = ClassRegistry::init("Utils") ;
+		$insertSql=" INSERT INTO sc_amazon_recommendations_pricing 
+					(ACCOUNT_ID, 
+					ASIN, 
+					SKU, 
+					UPC, 
+					LAST_UPDATED, 
+					ITEM_NAME, 
+					FULFILLMENT_CHANNEL, 
+					YOUR_PRICE_PLUS_SHIPPING, 
+					LOWEST_PRICE_PLUS_SHIPPING, 
+					PRICE_DIFFERENCE_TO_LOW_PRICE, 
+					MEDIAN_PRICE_PLUS_SHIPPING, 
+					LOWEST_MERCHANT_FULFILLED_OFFER_PRICE, 
+					LOWEST_AMAZON_FULFILLED_OFFER_PRICE, 
+					NUMBER_OF_OFFERS, 
+					NUMBER_OF_MERCHANT_FULFILLED_OFFERS, 
+					NUMBER_OF_AMAZON_FULFILLED_OFFERS, 
+					RECOMMENDATION_ID, 
+					RECOMMENDATION_REASON
+					)
+					VALUES
+					('{@#ACCOUNT_ID#}', 
+					'{@#ASIN#}', 
+					'{@#SKU#}', 
+					'{@#UPC#}', 
+					'{@#LAST_UPDATED#}', 
+					'{@#ITEM_NAME#}', 
+					'{@#FULFILLMENT_CHANNEL#}', 
+					'{@#YOUR_PRICE_PLUS_SHIPPING#}', 
+					'{@#LOWEST_PRICE_PLUS_SHIPPING#}', 
+					'{@#PRICE_DIFFERENCE_TO_LOW_PRICE#}', 
+					'{@#MEDIAN_PRICE_PLUS_SHIPPING#}', 
+					'{@#LOWEST_MERCHANT_FULFILLED_OFFER_PRICE#}', 
+					'{@#LOWEST_AMAZON_FULFILLED_OFFER_PRICE#}', 
+					'{@#NUMBER_OF_OFFERS#}', 
+					'{@#NUMBER_OF_MERCHANT_FULFILLED_OFFERS#}', 
+					'{@#NUMBER_OF_AMAZON_FULFILLED_OFFERS#}', 
+					'{@#RECOMMENDATION_ID#}', 
+					'{@#RECOMMENDATION_REASON#}'
+					)" ;
+	
+		$utils->exeSql($insertSql,$item) ;
 	}
 
-	function _doSave($item){
+	function _doSaveInventory ($item){
 		$utils  = ClassRegistry::init("Utils") ;
 		$insertSql=" INSERT INTO  sc_amazon_recommendations 
 					(ACCOUNT_ID, 

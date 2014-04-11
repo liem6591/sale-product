@@ -246,13 +246,13 @@ abstract class MWSRecommendationsSectionService_Model
             $fieldValue = $fieldAttrs['FieldValue'];
 
             $newPrefix = $prefix . $fieldName . '.';
-            $currentArr = $this->__toQueryParameterArray($newPrefix, $fieldType, $fieldValue);
+            $currentArr = $this->__toQueryParameterArray($newPrefix, $fieldType, $fieldValue,$fieldAttrs);
             $arr = array_merge($arr, $currentArr);
         }
         return $arr;
     }
 
-    private function __toQueryParameterArray($prefix, $fieldType, $fieldValue) {
+    private function __toQueryParameterArray($prefix, $fieldType, $fieldValue,$fieldAttrs=array() ) {
         $arr = array();
         if(is_array($fieldType)) {
             $listMemberName = $fieldAttrs['ListMemberName'];
@@ -264,13 +264,13 @@ abstract class MWSRecommendationsSectionService_Model
                 $itemPrefix = $prefix;
             }
 
-            print_r($fieldValue);
+            //print_r($fieldValue);
             for($i = 1; $i <= count($fieldValue); $i++) {
                 $indexedPrefix = $itemPrefix . $i . '.';
                 $memberType = $fieldType[0];
 
                 echo("Recursing with prefix " . $indexedPrefix . ", type: " . $memberType . ", value= " . $fieldValue[$i - 1]);
-                $arr = array_merge($arr, $this->__toQueryParameterArray($indexedPrefix, $memberType, $fieldValue[$i - 1]));
+                $arr = array_merge($arr, $this->__toQueryParameterArray($indexedPrefix, $memberType, $fieldValue[$i - 1],$fieldAttrs));
             }
 
         } else if($this->_isComplexType($fieldType)) {
