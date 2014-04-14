@@ -2,7 +2,13 @@
 require_once("amazon/MarketplaceWebServiceProducts/Client.php");
 require_once("amazon/MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForASINRequest.php");
 require_once("amazon/MarketplaceWebServiceProducts/Model/GetLowestOfferListingsForASINResult.php");
+
+require_once("amazon/MarketplaceWebServiceProducts/Model/GetMyPriceForSKURequest.php");
+require_once("amazon/MarketplaceWebServiceProducts/Model/GetMyPriceForSKUResult.php");
+
 require_once("amazon/MarketplaceWebServiceProducts/Model/ASINListType.php");
+require_once("amazon/MarketplaceWebServiceProducts/Model/SellerSKUListType.php");
+
 
 require_once("amazon/MarketplaceWebServiceProducts/Exception.php");
 
@@ -39,6 +45,121 @@ class AmazonProducts {
 	public function getAccountPlatform($accountId){
 		$System = ClassRegistry::init("System") ;
 		return $System->getAccountPlatformConfig($accountId ) ;
+	}
+	
+	public function GetMyPriceForSKU($accountId){
+		//获取账户SKU
+		$SqlUtils = ClassRegistry::init("SqlUtils") ;
+	
+		$start = 0 ;
+		$limit = 20 ;
+		while(true){
+				
+			try{
+				$sql = "select distinct ASIN  from sc_amazon_account_product where status = 'Y' and account_id = '{@#accountId#}'  limit {@#start#},{@#limit#}" ;
+				$items = $SqlUtils->exeSqlWithFormat( $sql , array('accountId'=>$accountId,'start'=>$start,'limit'=>$limit) ) ;
+					
+				$isExist = false ;
+				$array = array() ;
+				foreach( $items as $item ){
+					$array[] = $item['ASIN'] ;
+				}
+				$this->_GetMyPriceForSKU( $accountId ,$array) ;
+					
+				if( count($items) < $limit ){
+					//处理完成
+					break ;
+				}else{
+					$start = $start + $limit ;
+				}
+			}catch(Exception $e){
+				//异常
+				debug($e) ;
+			}
+		}
+	}
+	
+	public function _GetMyPriceForSKU($accountId , $skus){
+		$platform = $this->getAccountPlatform($accountId) ;
+		$System = ClassRegistry::init("System") ;
+		$SqlUtils = ClassRegistry::init("SqlUtils") ;
+	
+		$config = array (
+				'ServiceURL' =>  $platform['AMAZON_PRODUCTS_URL'],// "https://mws.amazonservices.com",
+				'ProxyHost' => null,
+				'ProxyPort' => -1,
+				'MaxErrorRetry' => 3
+		);
+	
+		$service = new MarketplaceWebServiceProducts_Client(
+				$this->AWS_ACCESS_KEY_ID,
+				$this->AWS_SECRET_ACCESS_KEY,
+				$this->APPLICATION_NAME,
+				$this->APPLICATION_VERSION,
+				$config);
+	
+		$request = new MarketplaceWebServiceProducts_Model_GetMyPriceForSKURequest();
+		
+		$request->setMarketplaceId($this->MARKETPLACE_ID) ;
+		$request->setSellerId($this->MERCHANT_ID);
+		//$request->setItemCondition("New");
+		$SellerSKUList = new MarketplaceWebServiceProducts_Model_SellerSKUListType();
+		$SellerSKUList->setSellerSKU($skus) ;
+		$request->setSellerSKUList($SellerSKUList) ;
+		//$request->setASINList($SellerSKUList) ;
+	
+		try {
+			$response = $service->GetMyPriceForSKU($request);
+	
+			//echo ("Service Response\n");
+			//echo ("=============================================================================\n");
+	
+			//echo("        GetLowestOfferListingsForASINResponse\n");
+			$GetMyPriceForSKUResultList = $response->getGetMyPriceForSKUResult();
+			
+			$skuPrices = array() ;
+			
+			foreach ($GetMyPriceForSKUResultList as $getMyPriceForSKUResult) {
+
+						$product = $getMyPriceForSKUResult->getProduct();
+					
+						$offers = $product->getOffers();
+						$offerList = $offers->getOffer();
+						$landPrice = 0 ;
+						$sellerSku = "" ;
+						foreach ($offerList as $offer) {
+							if ($offer->isSetBuyingPrice()) {
+								$buyingPrice = $offer->getBuyingPrice();
+								if ($buyingPrice->isSetLandedPrice()) {
+									$landedPrice2 = $buyingPrice->getLandedPrice();
+									if ($landedPrice2->isSetAmount())
+									{
+										$landPrice =  $landedPrice2->getAmount();
+									}
+								}
+							}
+							if ($offer->isSetSellerSKU())
+							{
+								$sellerSku =  $offer->getSellerSKU() ;
+							}
+						}
+				//更新价格到数据库
+				if( !empty($sellerSku)  &&  $landPrice >0 ){
+					$sql = "update sc_amazon_account_product set LIST_PRICE='{@#listPrice#}' where sku='{@#sku#}' and account_id = '{@#accountId#}'" ;
+					$SqlUtils->exeSql($sql , array("listPrice"=>$landPrice,"sku"=>$sellerSku,"accountId"=>$accountId)) ;
+				}
+				
+			}
+		} catch (MarketplaceWebServiceProducts_Exception $ex) {
+			echo("Caught Exception: " . $ex->getMessage() . "\n");
+			echo("Response Status Code: " . $ex->getStatusCode() . "\n");
+			echo("Error Code: " . $ex->getErrorCode() . "\n");
+			echo("Error Type: " . $ex->getErrorType() . "\n");
+			echo("Request ID: " . $ex->getRequestId() . "\n");
+			echo("XML: " . $ex->getXML() . "\n");
+			echo("ResponseHeaderMetadata: " . $ex->getResponseHeaderMetadata() . "\n");
+		}
+			
 	}
 	
 	public function GetLowestOfferListingsForASIN($accountId){
