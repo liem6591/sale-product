@@ -56,13 +56,13 @@ class AmazonProducts {
 		while(true){
 				
 			try{
-				$sql = "select distinct ASIN  from sc_amazon_account_product where status = 'Y' and account_id = '{@#accountId#}'  limit {@#start#},{@#limit#}" ;
+				$sql = "select distinct SKU  from sc_amazon_account_product where status = 'Y' and account_id = '{@#accountId#}'  limit {@#start#},{@#limit#}" ;
 				$items = $SqlUtils->exeSqlWithFormat( $sql , array('accountId'=>$accountId,'start'=>$start,'limit'=>$limit) ) ;
 					
 				$isExist = false ;
 				$array = array() ;
 				foreach( $items as $item ){
-					$array[] = $item['ASIN'] ;
+					$array[] = $item['SKU'] ;
 				}
 				$this->_GetMyPriceForSKU( $accountId ,$array) ;
 					
@@ -120,9 +120,12 @@ class AmazonProducts {
 			$skuPrices = array() ;
 			
 			foreach ($GetMyPriceForSKUResultList as $getMyPriceForSKUResult) {
-
+						//print_r($getMyPriceForSKUResult) ;
 						$product = $getMyPriceForSKUResult->getProduct();
-					
+						if( empty($product) ) continue ;
+						//echo 11111111 ;
+						//print_r($product) ;
+						
 						$offers = $product->getOffers();
 						$offerList = $offers->getOffer();
 						$landPrice = 0 ;
