@@ -65,7 +65,26 @@ class NOrderService extends AppModel {
 			$orderItem['quantity-to-ship'] = $orderItem['QuantityOrdered'] ;
 		}
 		
+		//通过OrderId获取Order信息
+		$order = $this->getObject("sql_sc_order_findById", array("orderId"=>$orderId)) ;
+		if( !empty($order) ){
+			$orderItem['accountId'] = $order['ACCOUNT_ID'] ;
+			$orderItem['purchaseDate'] = $order['PURCHASE_DATE'] ;
+		}
+		
 		$record = $this->getObject("sql_sc_order_item_findById", array("orderId"=>$orderId,'orderItemId'=>$orderItemId)) ;
+		$sku = "" ;
+		if( $isFeed ){
+			$sku = $orderItem['sku'] ;
+		}else{
+			$sku = $orderItem['SellerSku'] ;
+		}
+		$sql = "select * from sc_real_product_rel srpr where account_id = '{@#accountId#}' and sku='{@#sku#}'" ;
+		$realProductRel = $this->getObject($sql, array("accountId"=>$order['ACCOUNT_ID'],"sku"=>$sku)) ;
+		if( !empty($realProductRel) ){
+			$orderItem['realId'] = $realProductRel['REAL_ID'] ;
+			$orderItem['realSku'] = $realProductRel['REAL_SKU'] ;
+		}
 	
 		if(empty($record)){//item未添加
 			if( $isFeed ){
@@ -75,6 +94,7 @@ class NOrderService extends AppModel {
 			}
 			
 			//查询REAL_SKU
+			/*
 			$realItem = $this->getObject("sql_getRealSku_ByOrderItemId",$orderItem) ;
 			if( !empty( $realItem ) ){
 				$orderItem['realSku'] = $realItem['REAL_SKU'] ;
@@ -83,7 +103,7 @@ class NOrderService extends AppModel {
 				//插入订单库存表
 				$this->exeSql( "sql_order_storage_insert" , $orderItem ) ;
 			}
-			
+			*/
 		}else{
 			if( $isFeed ){
 				$this->exeSql("sql_sc_order_item_update_feed", $orderItem)  ;
